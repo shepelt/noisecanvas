@@ -1,0 +1,23 @@
+{
+  "_comment": "INTRO MOTIF - Sets the mood and establishes basic groove. Simple and repetitive with foundational elements: drums (kick/snare/hihat), basic chord progression (Am-F-C-G), and bass line following root notes.",
+  "preset": "lofi",
+  "bpm": 92,
+  "pattern": [
+    { "kick": "C-4", "hihat": "C-4", "melody": "A-3", "bass": "A-2" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "F-3", "bass": "F-2" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "C-3", "bass": "C-2" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "G-3", "bass": "G-2" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" }
+  ]
+}

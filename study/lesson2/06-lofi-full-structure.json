@@ -1,0 +1,69 @@
+{
+  "preset": "lofi",
+  "bpm": 92,
+  "patterns": [
+    {
+      "name": "intro",
+      "pattern": [
+        { "kick": "C-4", "hihat": "C-4", "melody": "A-3", "bass": "A-2" },
+        { "hihat": "C-4" },
+        { "snare": "C-4", "hihat": "C-4" },
+        { "hihat": "C-4" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "F-3", "bass": "F-2" },
+        { "hihat": "C-4" },
+        { "snare": "C-4", "hihat": "C-4" },
+        { "hihat": "C-4" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "C-3", "bass": "C-2" },
+        { "hihat": "C-4" },
+        { "snare": "C-4", "hihat": "C-4" },
+        { "hihat": "C-4" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "G-3", "bass": "G-2" },
+        { "hihat": "C-4" },
+        { "snare": "C-4", "hihat": "C-4" },
+        { "hihat": "C-4" }
+      ]
+    },
+    {
+      "name": "verse",
+      "pattern": [
+        { "kick": "C-4", "hihat": "C-4", "melody": "A-3", "bass": "A-2", "pad": "A-3" },
+        { "hihat": "C-4", "melody": "C-4" },
+        { "snare": "C-4", "hihat": "C-4", "melody": "E-4" },
+        { "hihat": "C-4", "melody": "A-3" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "F-3", "bass": "F-2", "pad": "F-3" },
+        { "hihat": "C-4", "melody": "A-3" },
+        { "snare": "C-4", "hihat": "C-4", "melody": "C-4" },
+        { "hihat": "C-4" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "C-3", "bass": "C-2", "pad": "C-3" },
+        { "hihat": "C-4", "melody": "E-3" },
+        { "snare": "C-4", "hihat": "C-4", "melody": "G-3" },
+        { "hihat": "C-4", "melody": "C-4" },
+        { "kick": "C-4", "hihat": "C-4", "melody": "G-3", "bass": "G-2", "pad": "G-3" },
+        { "hihat": "C-4", "melody": "B-3" },
+        { "snare": "C-4", "hihat": "C-4", "melody": "D-4" },
+        { "hihat": "C-4", "melody": "G-3" }
+      ]
+    },
+    {
+      "name": "chorus",
+      "pattern": [
+        { "kick": "C-4", "openhat": "C-4", "smash": "C-4", "melody": "A-4", "bass": "A-2", "pad": "A-3", "lead": "A-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "A-4", "lead": "A-5" },
+        { "snare": "C-4", "openhat": "C-4", "melody": "A-4", "lead": "A-5" },
+        { "openhat": "C-4", "melody": "A-4", "lead": "A-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "F-4", "bass": "F-2", "pad": "F-3", "lead": "F-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "F-4", "lead": "F-5" },
+        { "snare": "C-4", "openhat": "C-4", "melody": "F-4", "lead": "F-5" },
+        { "openhat": "C-4", "melody": "F-4", "lead": "F-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "C-4", "bass": "C-2", "pad": "C-3", "lead": "C-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "C-4", "lead": "C-5" },
+        { "snare": "C-4", "openhat": "C-4", "melody": "C-4", "lead": "C-5" },
+        { "openhat": "C-4", "melody": "C-4", "lead": "C-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "G-4", "bass": "G-2", "pad": "G-3", "lead": "G-5" },
+        { "kick": "C-4", "openhat": "C-4", "melody": "G-4", "lead": "G-5" },
+        { "snare": "C-4", "openhat": "C-4", "smash": "C-4", "melody": "G-4", "lead": "G-5" },
+        { "openhat": "C-4", "melody": "G-4", "lead": "G-5" }
+      ]
+    }
+  ]
+}

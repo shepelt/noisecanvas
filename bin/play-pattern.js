@@ -100,8 +100,16 @@ if (!PRESETS[patternData.preset]) {
   process.exit(1);
 }
 
-if (!patternData.pattern || !Array.isArray(patternData.pattern)) {
-  console.error('Error: "pattern" field is required and must be an array');
+// Support both single pattern and multiple patterns
+let patterns = [];
+if (patternData.patterns && Array.isArray(patternData.patterns)) {
+  // New format: { patterns: [{ name: "intro", pattern: [...] }, ...] }
+  patterns = patternData.patterns;
+} else if (patternData.pattern && Array.isArray(patternData.pattern)) {
+  // Old format: { pattern: [...] } - wrap in array for compatibility
+  patterns = [{ name: 'main', pattern: patternData.pattern }];
+} else {
+  console.error('Error: "pattern" or "patterns" field is required and must be an array');
   process.exit(1);
 }
 
@@ -111,7 +119,12 @@ const preset = PRESETS[patternData.preset];
 console.log(`Playing: ${path.basename(patternFile)}`);
 console.log(`Preset: ${patternData.preset}`);
 console.log(`BPM: ${bpm}`);
-console.log(`Pattern length: ${patternData.pattern.length} rows`);
+if (patterns.length > 1) {
+  console.log(`Sections: ${patterns.map(p => p.name).join(' → ')}`);
+  console.log(`Total length: ${patterns.reduce((sum, p) => sum + p.pattern.length, 0)} rows`);
+} else {
+  console.log(`Pattern length: ${patterns[0].pattern.length} rows`);
+}
 console.log(`Repeat: ${repeat} time(s)`);
 console.log('');
 
@@ -131,27 +144,33 @@ for (const [name, filepath] of Object.entries(preset)) {
 
 console.log('');
 
-// Convert JSON pattern to sampler pattern format
+// Convert JSON patterns to sampler pattern format
+// Combine all patterns into one long pattern
 // JSON: [{ "kick": "C-4", "hihat": "C-4" }, ...]
 // Sampler: [[{ sample: "kick", note: "C-4" }, { sample: "hihat", note: "C-4" }], ...]
 
-const samplerPattern = patternData.pattern.map(row => {
-  const channels = [];
-  
-  // Get all instrument names from preset
-  for (const instrumentName of Object.keys(preset)) {
-    if (row[instrumentName]) {
-      channels.push({
-        sample: instrumentName,
-        note: row[instrumentName]
-      });
-    } else {
-      channels.push(null);
+const convertPattern = (jsonPattern) => {
+  return jsonPattern.map(row => {
+    const channels = [];
+    
+    // Get all instrument names from preset
+    for (const instrumentName of Object.keys(preset)) {
+      if (row[instrumentName]) {
+        channels.push({
+          sample: instrumentName,
+          note: row[instrumentName]
+        });
+      } else {
+        channels.push(null);
+      }
     }
-  }
-  
-  return channels;
-});
+    
+    return channels;
+  });
+};
+
+// Combine all patterns into one
+const samplerPattern = patterns.flatMap(p => convertPattern(p.pattern));
 
 // Play the pattern
 console.log('Playing...');

@@ -1,0 +1,22 @@
+{
+  "preset": "lofi",
+  "bpm": 92,
+  "pattern": [
+    { "kick": "C-4", "hihat": "C-4", "melody": "A-3" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "F-3" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "C-3" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4", "melody": "G-3" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" }
+  ]
+}

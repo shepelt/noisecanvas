@@ -1,0 +1,14 @@
+{
+  "preset": "drums",
+  "bpm": 85,
+  "pattern": [
+    { "kick": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "kick": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" }
+  ]
+}

@@ -33,8 +33,14 @@ Keep it flat until complexity demands organization:
 /noisecanvas
   /samples          # Audio samples
   /experiments      # Quick experiments and tests
+  backlog.md        # Task management and progress tracking
   notes.md          # Learning journal (discoveries, questions)
 ```
+
+### Task Management
+- Use backlog.md as progress and task management framework
+- Completed tasks are documented with TASK-N naming
+- TODO section contains focused suggestions for next steps
 
 ## Development Workflow
 
@@ -106,26 +112,6 @@ Keep it flat until complexity demands organization:
 - ❌ Don't design plugin architecture before you have plugins
 - ✅ Start with hardcoded values, extract variables when you need to change them
 - ✅ Copy-paste 2 times, refactor on the 3rd
-
-### Examples
-```javascript
-// ❌ Too early
-class BaseInstrument {
-  constructor(config) { /* abstraction for future instruments */ }
-}
-
-// ✅ Start here
-function playKick() {
-  const sample = loadSample('kick.wav')
-  playSample(sample)
-}
-
-// ✅ Then, when you have 3 instruments
-function playInstrument(name) {
-  const sample = loadSample(`${name}.wav`)
-  playSample(sample)
-}
-```
 
 ## Anti-Patterns to Avoid
 

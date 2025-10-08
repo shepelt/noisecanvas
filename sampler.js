@@ -6,6 +6,35 @@ class Sampler {
     this.samples = new Map();
   }
 
+  // Convert note name to semitones relative to base note
+  // e.g., noteToSemitones('D-4', 'C-4') → 2 (D is 2 semitones above C)
+  noteToSemitones(targetNote, baseNote) {
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    
+    // Parse note (e.g., "C-4" or "C#4")
+    const parseNote = (note) => {
+      const match = note.match(/^([A-G]#?)[-]?(\d)$/);
+      if (!match) {
+        throw new Error(`Invalid note format: ${note}. Use format like 'C-4' or 'C#4'`);
+      }
+      const noteName = match[1];
+      const octave = parseInt(match[2]);
+      const noteIndex = noteNames.indexOf(noteName);
+      
+      if (noteIndex === -1) {
+        throw new Error(`Invalid note name: ${noteName}`);
+      }
+      
+      // Calculate absolute semitone (C-0 = 0)
+      return octave * 12 + noteIndex;
+    };
+    
+    const targetSemitone = parseNote(targetNote);
+    const baseSemitone = parseNote(baseNote);
+    
+    return targetSemitone - baseSemitone;
+  }
+
   loadSample(name, filepath, options = {}) {
     const data = fs.readFileSync(filepath);
     const baseNote = options.baseNote || 'C-4';
@@ -57,13 +86,24 @@ class Sampler {
     }
   }
 
-  playNotes(name, semitones, callback) {
+  playNotes(name, notes, optionsOrCallback, callback) {
+    // Handle both (notes, callback) and (notes, options, callback)
+    let options = {};
+    let finalCallback = callback;
+    
+    if (typeof optionsOrCallback === 'function') {
+      finalCallback = optionsOrCallback;
+    } else if (typeof optionsOrCallback === 'object') {
+      options = optionsOrCallback;
+    }
+    
     const sample = this.samples.get(name);
     if (!sample) {
       throw new Error(`Sample '${name}' not found`);
     }
 
     const sampleData = sample.data;
+    const baseNote = sample.baseNote;
 
     const speaker = new Speaker({
       channels: 2,
@@ -71,10 +111,18 @@ class Sampler {
       sampleRate: 44100
     });
 
-    const silence = 0.05;
+    const gap = options.gap || 0.05; // Default 0.05 seconds
     const buffers = [];
 
-    for (const semitone of semitones) {
+    for (const note of notes) {
+      // Convert note to semitones if it's a string
+      let semitone;
+      if (typeof note === 'string') {
+        semitone = this.noteToSemitones(note, baseNote);
+      } else {
+        semitone = note;
+      }
+
       // Pitch shift: 2^(semitones/12)
       const pitchRatio = Math.pow(2, semitone / 12);
       
@@ -95,10 +143,10 @@ class Sampler {
       
       buffers.push(noteBuffer);
       
-      // Add short silence
-      const silenceSamples = Math.floor(44100 * silence);
-      const silenceBuffer = Buffer.alloc(silenceSamples * 4);
-      buffers.push(silenceBuffer);
+      // Add gap between notes
+      const gapSamples = Math.floor(44100 * gap);
+      const gapBuffer = Buffer.alloc(gapSamples * 4);
+      buffers.push(gapBuffer);
     }
 
     // Concatenate all buffers
@@ -107,8 +155,8 @@ class Sampler {
     speaker.write(finalBuffer);
     speaker.end();
 
-    if (callback) {
-      speaker.once('close', callback);
+    if (finalCallback) {
+      speaker.once('close', finalCallback);
     }
   }
 }

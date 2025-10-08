@@ -1,0 +1,14 @@
+{
+  "preset": "drums",
+  "bpm": 160,
+  "pattern": [
+    { "kick": "C-4" },
+    {},
+    { "snare": "C-4" },
+    {},
+    { "kick": "C-4" },
+    {},
+    { "snare": "C-4" },
+    {}
+  ]
+}

@@ -3,8 +3,8 @@
 ## Study Subjects
 
 ### 1. Rhythm & Drums
-- [ ] Basic drum patterns (kick, snare, hi-hat)
-- [ ] 4/4 time signature
+- [x] Basic drum patterns (kick, snare, hi-hat)
+- [x] 4/4 time signature
 - [ ] Groove and swing
 - [ ] Polyrhythms
 
@@ -36,9 +36,12 @@
 
 ## Experiments & Discoveries
 
-### Experiment Log
+### Lesson 1: Basic Drum Patterns (2025-01-08)
 
-(Document what you try, what you hear, and what you learn)
+Experimented with 8-beat drum patterns at 120 BPM. Combined kick, snare, and hi-hat samples.
+Used smash sample for emphasis on first beat.
+
+Patterns in `lesson1/`
 
 ---
 

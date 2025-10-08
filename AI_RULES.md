@@ -42,6 +42,12 @@ Keep it flat until complexity demands organization:
 - Write tests first, then implement
 - Keep tests simple and focused on one concept
 - Test the sound/musical result, not just code correctness
+- **Test naming conventions**
+  - Use underscores instead of spaces or hyphens: `test('pattern_beat')`
+  - Keep names short but descriptive: function name + brief context
+  - Good: `pattern_beat`, `notes_octaves`, `load_custom_basenote`
+  - Bad: `should play a pattern with kick and snare beat`
+  - Run specific test: `npm run test:filter pattern_beat`
 - Example cycle:
   1. Write test: "440Hz sine wave for 1 second"
   2. Run test (fails)

@@ -8,14 +8,14 @@ describe('Sampler', () => {
     sampler = new Sampler();
   });
 
-  test('should load a sample', () => {
+  test('load', () => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
     expect(sampler.hasSample('steinway')).toBe(true);
   });
 
-  test('should load sample with default base note C-4', () => {
+  test('load_default_basenote', () => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath);
     
@@ -23,7 +23,7 @@ describe('Sampler', () => {
     expect(sample.baseNote).toBe('C-4');
   });
 
-  test('should load sample with custom base note', () => {
+  test('load_custom_basenote', () => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
@@ -31,7 +31,7 @@ describe('Sampler', () => {
     expect(sample.baseNote).toBe('C-2');
   });
 
-  test('should play a loaded sample', (done) => {
+  test('play', (done) => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
@@ -40,7 +40,7 @@ describe('Sampler', () => {
     });
   }, 5000);
 
-  test('should play notes sequence with semitones', (done) => {
+  test('notes_semitones', (done) => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
@@ -52,7 +52,7 @@ describe('Sampler', () => {
     });
   }, 5000);
 
-  test('should play notes sequence with note names', (done) => {
+  test('notes_names', (done) => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
@@ -64,7 +64,7 @@ describe('Sampler', () => {
     });
   }, 5000);
 
-  test('should play notes across different octaves', (done) => {
+  test('notes_octaves', (done) => {
     const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
     
@@ -75,4 +75,25 @@ describe('Sampler', () => {
       done();
     });
   }, 5000);
+
+  test('pattern_beat', (done) => {
+    // Load drum samples
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
+    
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+    sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
+    
+    // Pattern: Kick - Snare - Kick - Snare
+    const pattern = [
+      { sample: 'kick', note: 'C-2' },
+      { sample: 'snare', note: 'C-2' },
+      { sample: 'kick', note: 'C-2' },
+      { sample: 'snare', note: 'C-2' }
+    ];
+    
+    sampler.playPattern(pattern, { gap: 0.25 }, () => {
+      done();
+    });
+  }, 10000);
 });

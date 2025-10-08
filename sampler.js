@@ -159,6 +159,80 @@ class Sampler {
       speaker.once('close', finalCallback);
     }
   }
+
+  playPattern(pattern, optionsOrCallback, callback) {
+    // Handle both (pattern, callback) and (pattern, options, callback)
+    let options = {};
+    let finalCallback = callback;
+    
+    if (typeof optionsOrCallback === 'function') {
+      finalCallback = optionsOrCallback;
+    } else if (typeof optionsOrCallback === 'object') {
+      options = optionsOrCallback;
+    }
+
+    const speaker = new Speaker({
+      channels: 2,
+      bitDepth: 16,
+      sampleRate: 44100
+    });
+
+    const gap = options.gap || 0.25; // Default 0.25 seconds between beats
+    const buffers = [];
+
+    for (const step of pattern) {
+      const sample = this.samples.get(step.sample);
+      if (!sample) {
+        throw new Error(`Sample '${step.sample}' not found`);
+      }
+
+      const sampleData = sample.data;
+      const baseNote = sample.baseNote;
+
+      // Convert note to semitones if it's a string
+      let semitone;
+      if (typeof step.note === 'string') {
+        semitone = this.noteToSemitones(step.note, baseNote);
+      } else {
+        semitone = step.note || 0; // Default to 0 if no note specified
+      }
+
+      // Pitch shift: 2^(semitones/12)
+      const pitchRatio = Math.pow(2, semitone / 12);
+      
+      // Resampling (simple nearest neighbor)
+      const newLength = Math.floor(sampleData.length / pitchRatio);
+      const stepBuffer = Buffer.alloc(newLength * 4);
+      
+      for (let i = 0; i < newLength; i++) {
+        const sourceIndex = Math.floor(i * pitchRatio);
+        if (sourceIndex < sampleData.length) {
+          const sample8bit = sampleData.readInt8(sourceIndex);
+          const sample16bit = sample8bit * 256;
+          
+          stepBuffer.writeInt16LE(sample16bit, i * 4);
+          stepBuffer.writeInt16LE(sample16bit, i * 4 + 2);
+        }
+      }
+      
+      buffers.push(stepBuffer);
+      
+      // Add gap between steps
+      const gapSamples = Math.floor(44100 * gap);
+      const gapBuffer = Buffer.alloc(gapSamples * 4);
+      buffers.push(gapBuffer);
+    }
+
+    // Concatenate all buffers
+    const finalBuffer = Buffer.concat(buffers);
+    
+    speaker.write(finalBuffer);
+    speaker.end();
+
+    if (finalCallback) {
+      speaker.once('close', finalCallback);
+    }
+  }
 }
 
 module.exports = Sampler;

@@ -10,10 +10,9 @@
 - TASK-6: Single Speaker + software mixing for 4 channels
 - TASK-7: Sample length normalization for precise timing
 - TASK-8: BPM-based timing system (replaced gap-based timing)
+- TASK-9: Technical rhythm test - complex 16-beat drum pattern
 
 ## In-Progress
-
-(none)
 
 ## TODO (Suggestions)
 

@@ -34,7 +34,6 @@ Keep it flat until complexity demands organization:
   /samples          # Audio samples
   /experiments      # Quick experiments and tests
   backlog.md        # Task management and progress tracking
-  notes.md          # Learning journal (discoveries, questions)
 ```
 
 ### Task Management

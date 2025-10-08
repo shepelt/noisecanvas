@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "test:filter": "jest -t"
+    "test:filter": "jest -t",
+    "mod-info": "node mod-info.js"
   },
   "keywords": [],
   "author": "",

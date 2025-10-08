@@ -261,4 +261,233 @@ describe('Sampler', () => {
       });
     });
   }, 10000);
+
+  test('technical_rhythm_16beat', (done) => {
+    // Complex 16-beat drum pattern
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
+    const closedHihatPath = path.join(__dirname, 'samples', 'st-01', 'CloseHiHat');
+
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+    sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
+    sampler.loadSample('hihat', hihatPath, { baseNote: 'C-2' });
+    sampler.loadSample('closed_hihat', closedHihatPath, { baseNote: 'C-2' });
+
+    // 16-beat pattern with complex hi-hat and kick variations
+    const pattern = [
+      // Beat 1
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 2
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 3
+      [
+        null,
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Beat 4
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 5
+      [
+        { sample: 'snare', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 6
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 7
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Beat 8
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 9
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 10
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 11
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Beat 12
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 13
+      [
+        { sample: 'snare', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 14
+      [
+        null,
+        { sample: 'closed_hihat', note: 'C-2' }
+      ],
+      // Beat 15
+      [
+        null,
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Beat 16
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'closed_hihat', note: 'C-2' }
+      ]
+    ];
+
+    // BPM 180 - fast 16-beat pattern
+    sampler.playPattern(pattern, { bpm: 180, repeat: 2 }, () => {
+      done();
+    });
+  }, 15000);
+
+  test('melody_with_rhythm', (done) => {
+    // Melody and drums playing together
+    const pianoPath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'CloseHiHat');
+
+    sampler.loadSample('piano', pianoPath, { baseNote: 'C-2' });
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+    sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
+    sampler.loadSample('hihat', hihatPath, { baseNote: 'C-2' });
+
+    // Simple 8-bar pattern with melody on Ch0, drums on Ch1-3
+    // Melody: C-D-E-C (4 notes)
+    const pattern = [
+      // Bar 1: C note + kick + hihat
+      [
+        { sample: 'piano', note: 'C-3' },
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 2: hihat
+      [
+        null,
+        null,
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 3: D note + snare + hihat
+      [
+        { sample: 'piano', note: 'D-3' },
+        { sample: 'snare', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 4: hihat
+      [
+        null,
+        null,
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 5: E note + kick + hihat
+      [
+        { sample: 'piano', note: 'E-3' },
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 6: hihat
+      [
+        null,
+        null,
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 7: C note + snare + hihat
+      [
+        { sample: 'piano', note: 'C-3' },
+        { sample: 'snare', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Bar 8: kick + hihat (ending)
+      [
+        null,
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ]
+    ];
+
+    // BPM 120 - medium tempo for melody
+    sampler.playPattern(pattern, { bpm: 120, repeat: 2 }, () => {
+      done();
+    });
+  }, 20000);
+
+  test('play_note_with_volume', (done) => {
+    const sampler = new Sampler();
+    const samplePath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    
+    sampler.loadSample('kick', samplePath, { baseNote: 'C-2' });
+    
+    // Play same note with different volumes
+    const pattern = [
+      [{ sample: 'kick', note: 'C-2', volume: 64 }], // Full volume (MOD max = 64)
+      [null],
+      [{ sample: 'kick', note: 'C-2', volume: 32 }], // Half volume
+      [null],
+      [{ sample: 'kick', note: 'C-2', volume: 16 }], // Quarter volume
+      [null],
+      [{ sample: 'kick', note: 'C-2', volume: 0 }],  // Silent
+      [null]
+    ];
+    
+    console.log('Playing kick at different volumes: 64, 32, 16, 0');
+    
+    sampler.playPattern(pattern, { bpm: 240 }, () => {
+      console.log('Done!');
+      done();
+    });
+  }, 10000);
+
+  test('play_pattern_with_panning', (done) => {
+    const sampler = new Sampler();
+    const samplePath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    
+    sampler.loadSample('kick', samplePath, { baseNote: 'C-2' });
+    
+    // Play same note on different channels with panning
+    const pattern = [
+      // Left channel
+      [{ sample: 'kick', note: 'C-2', pan: 0 }],   // Full left
+      [null],
+      // Right channel  
+      [{ sample: 'kick', note: 'C-2', pan: 255 }], // Full right
+      [null],
+      // Center
+      [{ sample: 'kick', note: 'C-2', pan: 128 }], // Center
+      [null],
+      // Default (should be center)
+      [{ sample: 'kick', note: 'C-2' }],
+      [null]
+    ];
+    
+    console.log('Playing with panning: Left, Right, Center, Default');
+    
+    sampler.playPattern(pattern, { bpm: 240 }, () => {
+      console.log('Done!');
+      done();
+    });
+  }, 10000);
 });

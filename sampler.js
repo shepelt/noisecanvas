@@ -38,10 +38,15 @@ class Sampler {
   loadSample(name, filepath, options = {}) {
     const data = fs.readFileSync(filepath);
     const baseNote = options.baseNote || 'C-4';
+    const loopStart = options.loopStart || 0;
+    const loopLength = options.loopLength || 0;
     
     this.samples.set(name, {
       data: data,
-      baseNote: baseNote
+      baseNote: baseNote,
+      loopStart: loopStart,
+      loopLength: loopLength,
+      hasLoop: loopLength > 2  // MOD standard: loop length > 2 means looping
     });
   }
 
@@ -187,81 +192,103 @@ class Sampler {
     const buildPatternBuffers = () => {
       const channelBuffers = Array(numChannels).fill(null).map(() => []);
       
+      // Calculate row duration in samples (bytes for stereo 16-bit)
+      const rowDurationSamples = Math.floor(44100 * rowDuration);
+      const rowDurationBytes = rowDurationSamples * 4; // stereo 16-bit
+      
       for (const row of pattern) {
         // Each row should have up to 4 steps (one per channel)
         const steps = Array.isArray(row) ? row : [row];
         
-        // First pass: generate all step buffers for this row
-        const rowStepBuffers = [];
-        let maxStepLength = 0;
-        
         for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
           const step = steps[channelIndex];
           
-          if (step === null || step === undefined) {
-            rowStepBuffers[channelIndex] = null;
-            continue;
-          }
+          // Create buffer for this row (fixed length = rowDuration)
+          const rowBuffer = Buffer.alloc(rowDurationBytes);
           
-          const sample = this.samples.get(step.sample);
-          if (!sample) {
-            throw new Error(`Sample '${step.sample}' not found`);
-          }
-
-          const sampleData = sample.data;
-          const baseNote = sample.baseNote;
-
-          // Convert note to semitones
-          let semitone;
-          if (typeof step.note === 'string') {
-            semitone = this.noteToSemitones(step.note, baseNote);
-          } else {
-            semitone = step.note || 0;
-          }
-
-          // Pitch shift
-          const pitchRatio = Math.pow(2, semitone / 12);
-          const newLength = Math.floor(sampleData.length / pitchRatio);
-          const stepBuffer = Buffer.alloc(newLength * 4);
-          
-          for (let i = 0; i < newLength; i++) {
-            const sourceIndex = Math.floor(i * pitchRatio);
-            if (sourceIndex < sampleData.length) {
-              const sample8bit = sampleData.readInt8(sourceIndex);
-              const sample16bit = sample8bit * 256;
-              
-              stepBuffer.writeInt16LE(sample16bit, i * 4);
-              stepBuffer.writeInt16LE(sample16bit, i * 4 + 2);
+          if (step !== null && step !== undefined) {
+            const sample = this.samples.get(step.sample);
+            if (!sample) {
+              throw new Error(`Sample '${step.sample}' not found`);
             }
+
+            const sampleData = sample.data;
+            const baseNote = sample.baseNote;
+
+            // Convert note to semitones
+            let semitone;
+            if (typeof step.note === 'string') {
+              semitone = this.noteToSemitones(step.note, baseNote);
+            } else {
+              semitone = step.note || 0;
+            }
+
+            // Pitch shift
+            const pitchRatio = Math.pow(2, semitone / 12);
+            const newLength = Math.floor(sampleData.length / pitchRatio);
+            
+            // Volume (MOD: 0-64, default 64 = full volume)
+            const volume = step.volume !== undefined ? step.volume : 64;
+            const volumeScale = volume / 64;
+            
+            // Panning (0 = left, 128 = center, 255 = right)
+            const pan = step.pan !== undefined ? step.pan : 128;
+            const leftGain = (255 - pan) / 255;
+            const rightGain = pan / 255;
+            
+            // Loop info
+            const hasLoop = sample.hasLoop;
+            const loopStart = sample.loopStart;
+            const loopEnd = sample.loopStart + sample.loopLength;
+            
+            // Write sample data into rowBuffer (up to rowDurationBytes)
+            let bytesWritten = 0;
+            for (let i = 0; i < newLength && bytesWritten < rowDurationBytes; i++) {
+              let sourcePosition = i * pitchRatio;
+              
+              // Handle looping
+              if (hasLoop && sourcePosition >= loopEnd) {
+                const loopSize = sample.loopLength;
+                const positionInLoop = (sourcePosition - loopStart) % loopSize;
+                sourcePosition = loopStart + positionInLoop;
+              }
+              
+              const sourceIndex = Math.floor(sourcePosition);
+              const fraction = sourcePosition - sourceIndex;
+              
+              // Linear interpolation between two samples
+              let sample8bit;
+              if (sourceIndex < sampleData.length - 1) {
+                let nextIndex = sourceIndex + 1;
+                
+                // If we're at loop end, wrap to loop start for interpolation
+                if (hasLoop && nextIndex >= loopEnd) {
+                  nextIndex = loopStart;
+                }
+                
+                const sample1 = sampleData.readInt8(sourceIndex);
+                const sample2 = sampleData.readInt8(nextIndex);
+                sample8bit = sample1 + (sample2 - sample1) * fraction;
+              } else if (sourceIndex < sampleData.length) {
+                sample8bit = sampleData.readInt8(sourceIndex);
+              } else {
+                break;
+              }
+              
+              const sample16bit = Math.floor(sample8bit * 256 * volumeScale);
+              
+              // Apply panning to left and right channels
+              const leftSample = Math.floor(sample16bit * leftGain);
+              const rightSample = Math.floor(sample16bit * rightGain);
+              
+              rowBuffer.writeInt16LE(leftSample, bytesWritten);
+              rowBuffer.writeInt16LE(rightSample, bytesWritten + 2);
+              bytesWritten += 4;
+            }
+            // Remaining bytes in rowBuffer are already 0 (silence)
           }
           
-          rowStepBuffers[channelIndex] = stepBuffer;
-          maxStepLength = Math.max(maxStepLength, newLength * 4);
-        }
-        
-        // Second pass: pad all buffers to same length and add row duration
-        for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
-          const stepBuffer = rowStepBuffers[channelIndex];
-          
-          if (stepBuffer === null) {
-            // Empty channel: silence for (maxStepLength + rowDuration)
-            const rowDurationSamples = Math.floor(44100 * rowDuration);
-            const totalLength = maxStepLength + (rowDurationSamples * 4);
-            const silenceBuffer = Buffer.alloc(totalLength);
-            channelBuffers[channelIndex].push(silenceBuffer);
-          } else {
-            // Pad to maxStepLength
-            const padding = maxStepLength - stepBuffer.length;
-            const paddingBuffer = Buffer.alloc(padding);
-            
-            // Add row duration
-            const rowDurationSamples = Math.floor(44100 * rowDuration);
-            const rowDurationBuffer = Buffer.alloc(rowDurationSamples * 4);
-            
-            channelBuffers[channelIndex].push(stepBuffer);
-            channelBuffers[channelIndex].push(paddingBuffer);
-            channelBuffers[channelIndex].push(rowDurationBuffer);
-          }
+          channelBuffers[channelIndex].push(rowBuffer);
         }
       }
       

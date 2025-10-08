@@ -11,10 +11,14 @@
 - TASK-7: Sample length normalization for precise timing
 - TASK-8: BPM-based timing system (replaced gap-based timing)
 - TASK-9: Technical rhythm test - complex 16-beat drum pattern
+- TASK-10: Simple melody + rhythm test (piano + drums together)
+- TASK-11: MOD file loader and playback (see loader.js and README.md for details)
 
 ## In-Progress
 
+(none)
+
 ## TODO (Suggestions)
 
+- MOD effect support (portamento, vibrato, arpeggio, etc.)
 - Real-time streaming engine (vs current offline rendering)
-- MOD file format support

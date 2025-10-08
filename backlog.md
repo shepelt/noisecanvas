@@ -17,6 +17,7 @@
 - TASK-13: S3M volume handling improvements (see s3m-loader.js for details)
 - TASK-14: Tick-based timing system with Note Delay effect (SDx) support
 - TASK-15: Sample-by-sample mixing (6x speedup, O(output_samples × active_channels))
+- TASK-17: Pattern composition system (play-pattern CLI, JSON format, sample presets, study/ folder)
 
 ## In-Progress
 

@@ -20,7 +20,7 @@
  *   node mod-info.js songs/lotus20.mod effects
  */
 
-const ModLoader = require('./mod-loader');
+const ModLoader = require('../mod-loader');
 const path = require('path');
 
 const args = process.argv.slice(2);

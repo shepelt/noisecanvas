@@ -111,6 +111,59 @@ npm test                    # Run all tests
 npm run test:filter <name>  # Run specific test
 ```
 
+## Pattern Composition System
+
+Create and play pattern-based compositions using JSON format.
+
+### Usage
+
+```bash
+node bin/play-pattern.js <pattern-file.json> [--repeat N]
+```
+
+### Pattern JSON Format
+
+```json
+{
+  "preset": "drums",
+  "bpm": 120,
+  "pattern": [
+    { "kick": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" },
+    { "snare": "C-4", "hihat": "C-4" },
+    { "hihat": "C-4" }
+  ]
+}
+```
+
+### Examples
+
+```bash
+# Play once
+node bin/play-pattern.js study/lesson1/01-kick-snare.json
+
+# Repeat 4 times
+node bin/play-pattern.js study/lesson1/02-basic-8beat.json --repeat 4
+```
+
+### Study Folder Structure
+
+Pattern compositions organized by learning progression:
+
+- `study/lesson1/` - Basic drum patterns (kick, snare, hihat)
+- `study/lesson2/` - Lo-fi hip-hop rhythms and variations
+
+### Available Presets
+
+See `bin/presets.js` for all available sample presets.
+
+**drums** - Ultimate Soundtracker drum kit
+- kick: BassDrum1
+- snare: Snare1
+- hihat: CloseHiHat
+- openhat: HiHat1
+- smash: Smash1
+
 ## Project Structure
 
 ```
@@ -121,8 +174,15 @@ npm run test:filter <name>  # Run specific test
   loader.test.js     # MOD loader tests
   sampler.test.js    # Sampler tests
   backlog.md         # Progress tracking
+  /bin
+    play-pattern.js  # Pattern composition player
+    presets.js       # Sample presets
+  /study
+    /lesson1         # Basic drum patterns
+    /lesson2         # Lo-fi hip-hop rhythms
   /songs             # MOD files
   /samples           # Sample files
+    /st-01           # Ultimate Soundtracker samples
 ```
 
 ## Development Philosophy

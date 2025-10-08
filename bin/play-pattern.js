@@ -29,17 +29,7 @@
 const fs = require('fs');
 const path = require('path');
 const Sampler = require('../sampler');
-
-// Sample presets
-const PRESETS = {
-  drums: {
-    kick: 'samples/st-01/BassDrum1',
-    snare: 'samples/st-01/Snare1',
-    hihat: 'samples/st-01/CloseHiHat',
-    openhat: 'samples/st-01/HiHat1',
-    smash: 'samples/st-01/Smash1'
-  }
-};
+const PRESETS = require('./presets');
 
 // Parse command line arguments
 const args = process.argv.slice(2);

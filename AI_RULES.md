@@ -3,6 +3,8 @@
 ## Project Overview
 NoiseCanvas is a sample-based music tracker engine for learning music theory through code. Built with a bottom-up approach where musical concepts emerge naturally from implementation.
 
+**Important**: Read `README.md` for project structure, usage examples, and available tools (play-pattern.js, mod-info.js, etc.)
+
 ## Development Philosophy
 
 ### Learning Through Building

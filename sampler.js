@@ -186,9 +186,15 @@ class Sampler {
     }
 
     // Setup timing
+    const bpm = options.bpm;
     const speed = options.speed || 6;
-    const tempo = options.tempo || 125;
-    const tickDuration = 2.5 / tempo;
+    
+    // Calculate tick duration from BPM
+    // BPM = beats per minute
+    // In tracker music: 1 row = 1 beat at default speed
+    // Tick duration formula: (60 / BPM) / (24 / speed)
+    const rowDuration = 60 / bpm;
+    const tickDuration = rowDuration / speed;
     const samplesPerTick = Math.floor(44100 * tickDuration);
 
     const repeat = options.repeat || 1;

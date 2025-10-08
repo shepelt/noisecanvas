@@ -9,9 +9,13 @@
 - TASK-5: Pattern repeat functionality (finite and infinite loops)
 - TASK-6: Single Speaker + software mixing for 4 channels
 - TASK-7: Sample length normalization for precise timing
+- TASK-8: BPM-based timing system (replaced gap-based timing)
+
+## In-Progress
+
+(none)
 
 ## TODO (Suggestions)
 
 - Real-time streaming engine (vs current offline rendering)
-- BPM-based timing system
 - MOD file format support

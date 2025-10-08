@@ -88,40 +88,69 @@ describe('Sampler', () => {
     sampler.loadSample('hihat', hihatPath, { baseNote: 'C-2' });
 
     // 4-channel Pattern (like Amiga)
-    // Each row has 4 slots (channels 0-3)
-    // null = no sound on that channel
+    // Each row can have 0-4 steps (one per channel)
+    // Unspecified channels are automatically silent
     const pattern = [
       // Row 0: Kick on Ch0, HiHat on Ch1
       [
-        { sample: 'kick', note: 'C-2' },   // Channel 0
-        { sample: 'hihat', note: 'C-2' },  // Channel 1
-        null,                               // Channel 2
-        null                                // Channel 3
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
       ],
-      // Row 1: HiHat on Ch1
+      // Row 1: HiHat on Ch1 only
       [
         null,
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ],
       // Row 2: Snare on Ch0, HiHat on Ch1
       [
         { sample: 'snare', note: 'C-2' },
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ],
-      // Row 3: HiHat on Ch1
+      // Row 3: HiHat on Ch1 only
       [
         null,
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ]
     ];
 
-    sampler.playPattern(pattern, { gap: 0.25 }, () => {
+    // gap: 0.25 = BPM 240 (60/0.25 = 240)
+    sampler.playPattern(pattern, { bpm: 240 }, () => {
+      done();
+    });
+  }, 10000);
+
+  test('pattern_simplified_interface', (done) => {
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
+
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+    sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
+    sampler.loadSample('hihat', hihatPath, { baseNote: 'C-2' });
+
+    // Simplified pattern - no need to specify null for unused channels
+    const pattern = [
+      // Row 0: Kick on Ch0, HiHat on Ch1 (Ch2, Ch3 auto-empty)
+      [
+        { sample: 'kick', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Row 1: Only HiHat on Ch0
+      [
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Row 2: Snare on Ch0, HiHat on Ch1
+      [
+        { sample: 'snare', note: 'C-2' },
+        { sample: 'hihat', note: 'C-2' }
+      ],
+      // Row 3: Only HiHat
+      [
+        { sample: 'hihat', note: 'C-2' }
+      ]
+    ];
+
+    sampler.playPattern(pattern, { bpm: 240 }, () => {
       done();
     });
   }, 10000);
@@ -131,11 +160,11 @@ describe('Sampler', () => {
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
-      [{ sample: 'kick', note: 'C-2' }, null, null, null]
+      [{ sample: 'kick', note: 'C-2' }]
     ];
 
-    // Repeat 3 times
-    sampler.playPattern(pattern, { gap: 0.25, repeat: 3 }, () => {
+    // Repeat 3 times, BPM 240
+    sampler.playPattern(pattern, { bpm: 240, repeat: 3 }, () => {
       done();
     });
   }, 5000);
@@ -145,11 +174,11 @@ describe('Sampler', () => {
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
-      [{ sample: 'kick', note: 'C-2' }, null, null, null]
+      [{ sample: 'kick', note: 'C-2' }]
     ];
 
-    // Infinite loop
-    const playback = sampler.playPattern(pattern, { gap: 0.25, repeat: -1 });
+    // Infinite loop, BPM 240
+    const playback = sampler.playPattern(pattern, { bpm: 240, repeat: -1 });
 
     // Stop after 2 seconds
     setTimeout(() => {
@@ -173,36 +202,63 @@ describe('Sampler', () => {
       // Beat 1: Kick + HiHat
       [
         { sample: 'kick', note: 'C-2' },
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ],
       // Beat 2: HiHat
       [
-        null,
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ],
       // Beat 3: Snare + HiHat
       [
         { sample: 'snare', note: 'C-2' },
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ],
       // Beat 4: HiHat
       [
-        null,
-        { sample: 'hihat', note: 'C-2' },
-        null,
-        null
+        { sample: 'hihat', note: 'C-2' }
       ]
     ];
 
-    // Play 10 times to check timing consistency
-    sampler.playPattern(pattern, { gap: 0.25, repeat: 10 }, () => {
+    // Play 10 times to check timing consistency, BPM 240
+    sampler.playPattern(pattern, { bpm: 240, repeat: 10 }, () => {
       done();
     });
   }, 30000); // 30 second timeout for 10 repeats
+
+  test('pattern_bpm_basic', (done) => {
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+
+    const pattern = [
+      [{ sample: 'kick', note: 'C-2' }],
+      [],
+      [{ sample: 'kick', note: 'C-2' }],
+      []
+    ];
+
+    // BPM 120 = 120 beats per minute = 0.5 seconds per beat
+    // Each row = 1 beat = 0.5 seconds
+    // 4 rows = 2 seconds total
+    sampler.playPattern(pattern, { bpm: 120 }, () => {
+      done();
+    });
+  }, 5000);
+
+  test('pattern_bpm_tempo_comparison', (done) => {
+    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
+
+    const pattern = [
+      [{ sample: 'kick', note: 'C-2' }, null, null, null]
+    ];
+
+    // Play at BPM 60 (slower), then BPM 240 (faster)
+    // BPM 60 = 1 second per row
+    // BPM 240 = 0.25 seconds per row
+    sampler.playPattern(pattern, { bpm: 60, repeat: 2 }, () => {
+      sampler.playPattern(pattern, { bpm: 240, repeat: 4 }, () => {
+        done();
+      });
+    });
+  }, 10000);
 });

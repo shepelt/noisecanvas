@@ -171,7 +171,15 @@ class Sampler {
       options = optionsOrCallback;
     }
 
-    const gap = options.gap || 0.25;
+    // Calculate row duration from BPM
+    // BPM = beats per minute
+    // Each row = 1 beat
+    // Duration per row = 60 / BPM seconds
+    if (!options.bpm) {
+      throw new Error('bpm option is required');
+    }
+    
+    const rowDuration = 60 / options.bpm;
     const repeat = options.repeat || 1; // Default: play once
     const numChannels = 4; // Amiga-style 4 channels
     
@@ -231,14 +239,14 @@ class Sampler {
           maxStepLength = Math.max(maxStepLength, newLength * 4);
         }
         
-        // Second pass: pad all buffers to same length and add gap
+        // Second pass: pad all buffers to same length and add row duration
         for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
           const stepBuffer = rowStepBuffers[channelIndex];
           
           if (stepBuffer === null) {
-            // Empty channel: silence for (maxStepLength + gap)
-            const gapSamples = Math.floor(44100 * gap);
-            const totalLength = maxStepLength + (gapSamples * 4);
+            // Empty channel: silence for (maxStepLength + rowDuration)
+            const rowDurationSamples = Math.floor(44100 * rowDuration);
+            const totalLength = maxStepLength + (rowDurationSamples * 4);
             const silenceBuffer = Buffer.alloc(totalLength);
             channelBuffers[channelIndex].push(silenceBuffer);
           } else {
@@ -246,13 +254,13 @@ class Sampler {
             const padding = maxStepLength - stepBuffer.length;
             const paddingBuffer = Buffer.alloc(padding);
             
-            // Add gap
-            const gapSamples = Math.floor(44100 * gap);
-            const gapBuffer = Buffer.alloc(gapSamples * 4);
+            // Add row duration
+            const rowDurationSamples = Math.floor(44100 * rowDuration);
+            const rowDurationBuffer = Buffer.alloc(rowDurationSamples * 4);
             
             channelBuffers[channelIndex].push(stepBuffer);
             channelBuffers[channelIndex].push(paddingBuffer);
-            channelBuffers[channelIndex].push(gapBuffer);
+            channelBuffers[channelIndex].push(rowDurationBuffer);
           }
         }
       }

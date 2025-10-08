@@ -38,6 +38,17 @@ Keep it flat until complexity demands organization:
 
 ## Development Workflow
 
+### Test-Driven Development (TDD)
+- Write tests first, then implement
+- Keep tests simple and focused on one concept
+- Test the sound/musical result, not just code correctness
+- Example cycle:
+  1. Write test: "440Hz sine wave for 1 second"
+  2. Run test (fails)
+  3. Implement minimal code to pass
+  4. Listen to result
+  5. Refactor if needed
+
 ### Iteration Cycle
 ```
 1. Build something minimal
@@ -56,6 +67,12 @@ Keep it flat until complexity demands organization:
 - **DO NOT** pre-teach theory or create elaborate structures upfront
 
 ## Code Conventions
+
+### Language
+- **All code comments and documentation must be in English**
+- Variable names, function names, and all identifiers in English
+- Commit messages in English
+- Only user-facing text (if any) may be in Korean
 
 ### Naming
 - **Functions**: Describe what they do musically

@@ -13,6 +13,8 @@
 - TASK-9: Technical rhythm test - complex 16-beat drum pattern
 - TASK-10: Simple melody + rhythm test (piano + drums together)
 - TASK-11: MOD file loader and playback (see loader.js and README.md for details)
+- TASK-12: S3M file loader and playback with correct pitch calculation (see s3m-loader.js)
+- TASK-13: S3M volume handling improvements (see s3m-loader.js for details)
 
 ## In-Progress
 
@@ -20,5 +22,6 @@
 
 ## TODO (Suggestions)
 
-- MOD effect support (portamento, vibrato, arpeggio, etc.)
+- Tick-based timing system for proper effect support (Note Delay, Volume Slides, etc.)
+- MOD/S3M effect support (portamento, vibrato, arpeggio, etc.)
 - Real-time streaming engine (vs current offline rendering)

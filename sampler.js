@@ -186,7 +186,14 @@ class Sampler {
       throw new Error('bpm option is required');
     }
     
-    const rowDuration = 60 / options.bpm;
+    // TASK-14: Tick-based timing system
+    // - 1 row = speed ticks (default: 6 ticks)
+    // - tick duration = (2.5 / tempo) seconds (S3M standard)
+    const speed = options.speed || 6;  // Default S3M speed
+    const tempo = options.tempo || 125; // Default S3M tempo
+    const tickDuration = 2.5 / tempo;
+    const rowDuration = speed * tickDuration;
+    
     const repeat = options.repeat || 1; // Default: play once
     
     // Determine number of channels from pattern
@@ -202,6 +209,9 @@ class Sampler {
     
     // Build pattern buffers with channel state tracking
     const buildPatternBuffers = () => {
+      console.log(`Rendering pattern: ${pattern.length} rows × ${numChannels} channels × ${speed} ticks = ${pattern.length * numChannels * speed} tick-buffers`);
+      const startTime = Date.now();
+      
       const channelBuffers = Array(numChannels).fill(null).map(() => []);
       
       // Track state for each channel
@@ -215,120 +225,178 @@ class Sampler {
         hasLoop: false,
         loopStart: 0,
         loopEnd: 0,
-        active: false
+        active: false,
+        // TASK-14: Note delay support
+        delayedNote: null,  // Note to trigger after delay
+        delayTicks: 0       // Remaining ticks until trigger
       }));
       
-      // Calculate row duration in samples (bytes for stereo 16-bit)
-      const rowDurationSamples = Math.floor(44100 * rowDuration);
-      const rowDurationBytes = rowDurationSamples * 4; // stereo 16-bit
+      // Calculate tick duration in samples (bytes for stereo 16-bit)
+      const tickDurationSamples = Math.floor(44100 * tickDuration);
+      const tickDurationBytes = tickDurationSamples * 4; // stereo 16-bit
+      
+      let processedRows = 0;
+      const logInterval = Math.max(1, Math.floor(pattern.length / 10)); // Log every 10%
       
       for (const row of pattern) {
         const steps = Array.isArray(row) ? row : [row];
         
-        for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
-          const step = steps[channelIndex];
-          const state = channelStates[channelIndex];
-          
-          // Check if this is a new note or just a parameter change
-          if (step !== null && step !== undefined) {
-            const sample = this.samples.get(step.sample);
-            if (!sample) {
-              throw new Error(`Sample '${step.sample}' not found`);
-            }
+        // Process each tick in this row
+        for (let tick = 0; tick < speed; tick++) {
+          for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
+            const step = steps[channelIndex];
+            const state = channelStates[channelIndex];
+            
+            // At tick 0, process new notes or effects
+            if (tick === 0 && step !== null && step !== undefined) {
+              const sample = this.samples.get(step.sample);
+              if (!sample) {
+                throw new Error(`Sample '${step.sample}' not found`);
+              }
 
-            const baseNote = sample.baseNote;
+              const baseNote = sample.baseNote;
 
-            // Convert note to semitones
-            let semitone;
-            if (typeof step.note === 'string') {
-              semitone = this.noteToSemitones(step.note, baseNote);
-            } else {
-              semitone = step.note || 0;
-            }
+              // Convert note to semitones
+              let semitone;
+              if (typeof step.note === 'string') {
+                semitone = this.noteToSemitones(step.note, baseNote);
+              } else {
+                semitone = step.note || 0;
+              }
 
-            // Check if this is the same note (just volume/pan change)
-            const isSameNote = state.active && 
-                               state.sample === step.sample && 
-                               state.pitchRatio === Math.pow(2, semitone / 12);
+              // Check for Note Delay effect (SDx)
+              const delayTicks = (step.effect === 'SD' && step.effectParam) ? step.effectParam : 0;
 
-            if (!isSameNote) {
-              // New note - reset channel state
-              state.sample = step.sample;
-              state.sampleData = sample.data;
-              state.position = 0;  // Start from beginning
-              state.pitchRatio = Math.pow(2, semitone / 12);
-              state.hasLoop = sample.hasLoop;
-              state.loopStart = sample.loopStart;
-              state.loopEnd = sample.loopStart + sample.loopLength;
-              state.active = true;
+              if (delayTicks > 0) {
+                // Store note for delayed triggering
+                state.delayedNote = {
+                  sample: step.sample,
+                  sampleData: sample.data,
+                  pitchRatio: Math.pow(2, semitone / 12),
+                  hasLoop: sample.hasLoop,
+                  loopStart: sample.loopStart,
+                  loopEnd: sample.loopStart + sample.loopLength,
+                  volume: step.volume !== undefined ? step.volume : 64,
+                  pan: step.pan !== undefined ? step.pan : 128
+                };
+                state.delayTicks = delayTicks;
+              } else {
+                // Immediate note trigger
+                const isSameNote = state.active && 
+                                   state.sample === step.sample && 
+                                   state.pitchRatio === Math.pow(2, semitone / 12);
+
+                if (!isSameNote) {
+                  // New note - reset channel state
+                  state.sample = step.sample;
+                  state.sampleData = sample.data;
+                  state.position = 0;  // Start from beginning
+                  state.pitchRatio = Math.pow(2, semitone / 12);
+                  state.hasLoop = sample.hasLoop;
+                  state.loopStart = sample.loopStart;
+                  state.loopEnd = sample.loopStart + sample.loopLength;
+                  state.active = true;
+                }
+                
+                // Always update volume and pan (even for same note)
+                state.volume = step.volume !== undefined ? step.volume : 64;
+                state.pan = step.pan !== undefined ? step.pan : 128;
+              }
             }
             
-            // Always update volume and pan (even for same note)
-            state.volume = step.volume !== undefined ? step.volume : 64;
-            state.pan = step.pan !== undefined ? step.pan : 128;
-          }
-          
-          // Create buffer for this row
-          const rowBuffer = Buffer.alloc(rowDurationBytes);
-          
-          // Render current channel state into rowBuffer
-          if (state.active && state.sampleData) {
-            const volumeScale = state.volume / 64;
-            const leftGain = (255 - state.pan) / 255;
-            const rightGain = state.pan / 255;
-            
-            let bytesWritten = 0;
-            while (bytesWritten < rowDurationBytes) {
-              // Calculate source position with pitch shift
-              const sourcePosition = state.position * state.pitchRatio;
-              const sourceIndex = Math.floor(sourcePosition);
+            // Check if delayed note should trigger on this tick
+            if (state.delayedNote && state.delayTicks > 0) {
+              state.delayTicks--;
               
-              // Handle looping
-              let actualIndex = sourceIndex;
-              if (state.hasLoop && sourceIndex >= state.loopEnd) {
-                const loopLength = state.loopEnd - state.loopStart;
-                if (loopLength > 0) {
-                  actualIndex = state.loopStart + ((sourceIndex - state.loopStart) % loopLength);
-                } else {
+              if (state.delayTicks === 0) {
+                // Trigger delayed note
+                state.sample = state.delayedNote.sample;
+                state.sampleData = state.delayedNote.sampleData;
+                state.position = 0;
+                state.pitchRatio = state.delayedNote.pitchRatio;
+                state.hasLoop = state.delayedNote.hasLoop;
+                state.loopStart = state.delayedNote.loopStart;
+                state.loopEnd = state.delayedNote.loopEnd;
+                state.volume = state.delayedNote.volume;
+                state.pan = state.delayedNote.pan;
+                state.active = true;
+                state.delayedNote = null;
+              }
+            }
+            
+            // Create buffer for this tick
+            const tickBuffer = Buffer.alloc(tickDurationBytes);
+            
+            // Render current channel state into tickBuffer
+            if (state.active && state.sampleData) {
+              const volumeScale = state.volume / 64;
+              const leftGain = (255 - state.pan) / 255;
+              const rightGain = state.pan / 255;
+              
+              let bytesWritten = 0;
+              while (bytesWritten < tickDurationBytes) {
+                // Calculate source position with pitch shift
+                const sourcePosition = state.position * state.pitchRatio;
+                const sourceIndex = Math.floor(sourcePosition);
+                
+                // Handle looping
+                let actualIndex = sourceIndex;
+                if (state.hasLoop && sourceIndex >= state.loopEnd) {
+                  const loopLength = state.loopEnd - state.loopStart;
+                  if (loopLength > 0) {
+                    actualIndex = state.loopStart + ((sourceIndex - state.loopStart) % loopLength);
+                  } else {
+                    state.active = false;
+                    break;
+                  }
+                } else if (sourceIndex >= state.sampleData.length) {
+                  // Sample finished, no loop
                   state.active = false;
                   break;
                 }
-              } else if (sourceIndex >= state.sampleData.length) {
-                // Sample finished, no loop
-                state.active = false;
-                break;
+                
+                // Linear interpolation
+                let sample8bit;
+                const fraction = sourcePosition - Math.floor(sourcePosition);
+                if (fraction > 0 && actualIndex + 1 < state.sampleData.length) {
+                  const sample1 = state.sampleData.readInt8(actualIndex);
+                  const sample2 = state.sampleData.readInt8(actualIndex + 1);
+                  sample8bit = sample1 + (sample2 - sample1) * fraction;
+                } else if (actualIndex < state.sampleData.length) {
+                  sample8bit = state.sampleData.readInt8(actualIndex);
+                } else {
+                  break;
+                }
+                
+                const sample16bit = Math.floor(sample8bit * 256 * volumeScale);
+                
+                // Apply panning
+                const leftSample = Math.floor(sample16bit * leftGain);
+                const rightSample = Math.floor(sample16bit * rightGain);
+                
+                tickBuffer.writeInt16LE(leftSample, bytesWritten);
+                tickBuffer.writeInt16LE(rightSample, bytesWritten + 2);
+                bytesWritten += 4;
+                
+                state.position++;
               }
-              
-              // Linear interpolation
-              let sample8bit;
-              const fraction = sourcePosition - Math.floor(sourcePosition);
-              if (fraction > 0 && actualIndex + 1 < state.sampleData.length) {
-                const sample1 = state.sampleData.readInt8(actualIndex);
-                const sample2 = state.sampleData.readInt8(actualIndex + 1);
-                sample8bit = sample1 + (sample2 - sample1) * fraction;
-              } else if (actualIndex < state.sampleData.length) {
-                sample8bit = state.sampleData.readInt8(actualIndex);
-              } else {
-                break;
-              }
-              
-              const sample16bit = Math.floor(sample8bit * 256 * volumeScale);
-              
-              // Apply panning
-              const leftSample = Math.floor(sample16bit * leftGain);
-              const rightSample = Math.floor(sample16bit * rightGain);
-              
-              rowBuffer.writeInt16LE(leftSample, bytesWritten);
-              rowBuffer.writeInt16LE(rightSample, bytesWritten + 2);
-              bytesWritten += 4;
-              
-              state.position++;
             }
+            
+            channelBuffers[channelIndex].push(tickBuffer);
           }
-          
-          channelBuffers[channelIndex].push(rowBuffer);
+        }
+        
+        processedRows++;
+        if (processedRows % logInterval === 0 || processedRows === pattern.length) {
+          const progress = ((processedRows / pattern.length) * 100).toFixed(0);
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+          console.log(`  Progress: ${progress}% (${processedRows}/${pattern.length} rows, ${elapsed}s)`);
         }
       }
+      
+      const renderTime = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log(`Rendering complete: ${renderTime}s`);
+      console.log(`Starting playback...`);
       
       return channelBuffers;
     };
@@ -338,6 +406,9 @@ class Sampler {
     
     // Mix all channels into one buffer
     const mixChannels = (channelBuffers) => {
+      console.log(`Mixing ${channelBuffers.length} channels...`);
+      const mixStartTime = Date.now();
+      
       // Find the longest buffer
       let maxLength = 0;
       for (const channelBuffer of channelBuffers) {
@@ -346,29 +417,40 @@ class Sampler {
       }
       
       const mixedBuffer = Buffer.alloc(maxLength);
+      const mixedView = new Int16Array(mixedBuffer.buffer, mixedBuffer.byteOffset, mixedBuffer.length / 2);
       
       // Calculate scaling factor to prevent clipping
-      // For many channels, scale conservatively but not too aggressively
       const channelCount = channelBuffers.length;
       const scaleFactor = 0.6 / Math.sqrt(channelCount);
       
-      // Mix all channels
-      for (const channelBuffer of channelBuffers) {
-        const channelData = Buffer.concat(channelBuffer);
+      // Optimized mixing: use TypedArray for faster access
+      for (let channelIdx = 0; channelIdx < channelBuffers.length; channelIdx++) {
+        const channelTickBuffers = channelBuffers[channelIdx];
+        let mixSampleOffset = 0;
         
-        for (let i = 0; i < channelData.length; i += 2) {
-          if (i >= mixedBuffer.length) break;
+        for (let tickIdx = 0; tickIdx < channelTickBuffers.length; tickIdx++) {
+          const tickBuffer = channelTickBuffers[tickIdx];
+          const tickView = new Int16Array(tickBuffer.buffer, tickBuffer.byteOffset, tickBuffer.length / 2);
           
-          const existing = mixedBuffer.readInt16LE(i);
-          const addition = channelData.readInt16LE(i);
+          for (let i = 0; i < tickView.length; i++) {
+            if (mixSampleOffset + i >= mixedView.length) break;
+            
+            const existing = mixedView[mixSampleOffset + i];
+            const addition = tickView[i];
+            
+            let mixed = existing + (addition * scaleFactor);
+            mixed = Math.max(-32768, Math.min(32767, mixed));
+            
+            mixedView[mixSampleOffset + i] = mixed;
+          }
           
-          // Mix with scaling: add scaled samples and clamp
-          let mixed = existing + (addition * scaleFactor);
-          mixed = Math.max(-32768, Math.min(32767, mixed));
-          
-          mixedBuffer.writeInt16LE(mixed, i);
+          mixSampleOffset += tickView.length;
         }
       }
+      
+      const mixTime = ((Date.now() - mixStartTime) / 1000).toFixed(2);
+      const bufferSizeMB = (mixedBuffer.length / 1024 / 1024).toFixed(2);
+      console.log(`Mixing complete: ${mixTime}s (buffer size: ${bufferSizeMB} MB)`);
       
       return mixedBuffer;
     };
@@ -423,6 +505,8 @@ class Sampler {
       // Mix all channels into one buffer
       const finalMixedBuffer = mixChannels(allRepeatBuffers);
       
+      console.log(`Creating speaker and sending buffer to audio device...`);
+      
       // Create one speaker and play
       const speaker = new Speaker({
         channels: 2,
@@ -432,6 +516,8 @@ class Sampler {
       
       speaker.write(finalMixedBuffer);
       speaker.end();
+      
+      console.log(`Buffer sent to speaker. Playback should start now!`);
       
       if (finalCallback) {
         speaker.once('close', finalCallback);

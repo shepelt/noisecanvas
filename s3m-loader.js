@@ -28,11 +28,11 @@
  *    - 255 (0xFF): No volume (null)
  *    - Priority: Effect C (Set Volume) > Volume column > Previous channel volume
  * 
- * 3. Note Delay Effect (SDx):
+ * 3. Note Delay Effect (SDx) - TASK-14:
  *    - Effect S (0x13), subcommand D (0x8x) delays note trigger by x ticks
- *    - Current implementation: Skip delayed notes to prevent cutting previous notes
- *    - Limitation: This is a workaround - proper implementation requires tick-based timing
- *    - TODO: Implement tick-based timing system for accurate effect processing
+ *    - Implementation: Tick-based timing system with delayed note triggering
+ *    - Delayed notes are stored and triggered after x ticks
+ *    - Previous notes continue playing during delay (no cutting)
  * 
  * Usage:
  *   const loader = new S3mLoader();
@@ -430,18 +430,6 @@ class S3mLoader {
 
           // Check if there's a note to play
           if (cell && cell.instrument && cell.note !== null) {
-            // Check for Note Delay effect (SDx where x > 0)
-            const hasNoteDelay = cell.effect === 0x13 && 
-                                 (cell.effectParam >> 4) === 0x8 && 
-                                 (cell.effectParam & 0x0F) > 0;
-            
-            // TEMPORARY: Skip notes with delay to prevent cutting off previous notes
-            // TODO: Implement proper tick-based timing in Sampler
-            if (hasNoteDelay) {
-              channels.push(null);
-              continue;
-            }
-            
             const inst = this.instruments[cell.instrument - 1];
             
             // Parse S3M note: upper 4 bits = octave, lower 4 bits = semitone
@@ -472,6 +460,17 @@ class S3mLoader {
               sample: `s3m_inst_${cell.instrument - 1}`,
               note: noteName
             };
+
+            // TASK-14: Pass effect data to Sampler
+            // Convert S3M effect codes to readable format
+            if (cell.effect !== null && cell.effectParam !== null) {
+              // Effect S (0x13) with subcommand D (0x8x) = Note Delay
+              if (cell.effect === 0x13 && (cell.effectParam >> 4) === 0x8) {
+                step.effect = 'SD';
+                step.effectParam = cell.effectParam & 0x0F; // Extract delay ticks
+              }
+              // Add more effects here as needed
+            }
 
             // Determine volume:
             // S3M maintains volume state per channel
@@ -539,8 +538,13 @@ class S3mLoader {
     // Calculate BPM
     const bpm = this.calculateBPM();
 
+    // TASK-14: Pass speed and tempo to Sampler for tick-based timing
     // Play
-    this.sampler.playPattern(samplerPattern, { bpm }, () => {
+    this.sampler.playPattern(samplerPattern, { 
+      bpm, 
+      speed: this.initialSpeed, 
+      tempo: this.initialTempo 
+    }, () => {
       // Cleanup temp files
       const fs = require('fs');
       fs.rmSync(tempDir, { recursive: true, force: true });

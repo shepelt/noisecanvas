@@ -5,6 +5,7 @@
   "scripts": {
     "test": "jest",
     "test:filter": "jest -t",
+    "test:watch": "jest --runInBand --verbose -t",
     "mod-info": "node mod-info.js"
   },
   "keywords": [],

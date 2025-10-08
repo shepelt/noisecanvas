@@ -35,19 +35,23 @@ const PRESETS = require('./presets');
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-  console.log('Usage: node bin/play-pattern.js <pattern-file.json> [--repeat N]');
+  console.log('Usage: node bin/play-pattern.js <pattern-file.json> [--repeat N] [--bpm BPM]');
   console.log('');
   console.log('Options:');
   console.log('  --repeat N    Repeat pattern N times (default: 1)');
+  console.log('  --bpm BPM     Override BPM tempo (default: from file)');
   console.log('');
   console.log('Examples:');
   console.log('  node bin/play-pattern.js study/01-kick-snare.json');
   console.log('  node bin/play-pattern.js study/01-kick-snare.json --repeat 4');
+  console.log('  node bin/play-pattern.js study/01-kick-snare.json --bpm 120');
+  console.log('  node bin/play-pattern.js study/01-kick-snare.json --repeat 4 --bpm 140');
   process.exit(1);
 }
 
 let patternFile = null;
 let repeat = 1;
+let bpmOverride = null;
 
 // Parse arguments
 for (let i = 0; i < args.length; i++) {
@@ -59,6 +63,17 @@ for (let i = 0; i < args.length; i++) {
     repeat = parseInt(args[i + 1]);
     if (isNaN(repeat) || repeat < 1) {
       console.error('Error: --repeat must be a positive number');
+      process.exit(1);
+    }
+    i++; // Skip next argument
+  } else if (args[i] === '--bpm') {
+    if (i + 1 >= args.length) {
+      console.error('Error: --bpm requires a number');
+      process.exit(1);
+    }
+    bpmOverride = parseInt(args[i + 1]);
+    if (isNaN(bpmOverride) || bpmOverride < 1) {
+      console.error('Error: --bpm must be a positive number');
       process.exit(1);
     }
     i++; // Skip next argument
@@ -113,12 +128,12 @@ if (patternData.patterns && Array.isArray(patternData.patterns)) {
   process.exit(1);
 }
 
-const bpm = patternData.bpm || 120;
+const bpm = bpmOverride || patternData.bpm || 120;
 const preset = PRESETS[patternData.preset];
 
 console.log(`Playing: ${path.basename(patternFile)}`);
 console.log(`Preset: ${patternData.preset}`);
-console.log(`BPM: ${bpm}`);
+console.log(`BPM: ${bpm}${bpmOverride ? ' (overridden)' : ''}`);
 if (patterns.length > 1) {
   console.log(`Sections: ${patterns.map(p => p.name).join(' → ')}`);
   console.log(`Total length: ${patterns.reduce((sum, p) => sum + p.pattern.length, 0)} rows`);

@@ -171,66 +171,193 @@ class Sampler {
       options = optionsOrCallback;
     }
 
-    const speaker = new Speaker({
-      channels: 2,
-      bitDepth: 16,
-      sampleRate: 44100
-    });
-
-    const gap = options.gap || 0.25; // Default 0.25 seconds between beats
-    const buffers = [];
-
-    for (const step of pattern) {
-      const sample = this.samples.get(step.sample);
-      if (!sample) {
-        throw new Error(`Sample '${step.sample}' not found`);
-      }
-
-      const sampleData = sample.data;
-      const baseNote = sample.baseNote;
-
-      // Convert note to semitones if it's a string
-      let semitone;
-      if (typeof step.note === 'string') {
-        semitone = this.noteToSemitones(step.note, baseNote);
-      } else {
-        semitone = step.note || 0; // Default to 0 if no note specified
-      }
-
-      // Pitch shift: 2^(semitones/12)
-      const pitchRatio = Math.pow(2, semitone / 12);
+    const gap = options.gap || 0.25;
+    const repeat = options.repeat || 1; // Default: play once
+    const numChannels = 4; // Amiga-style 4 channels
+    
+    // Build single pattern buffers first
+    const buildPatternBuffers = () => {
+      const channelBuffers = Array(numChannels).fill(null).map(() => []);
       
-      // Resampling (simple nearest neighbor)
-      const newLength = Math.floor(sampleData.length / pitchRatio);
-      const stepBuffer = Buffer.alloc(newLength * 4);
-      
-      for (let i = 0; i < newLength; i++) {
-        const sourceIndex = Math.floor(i * pitchRatio);
-        if (sourceIndex < sampleData.length) {
-          const sample8bit = sampleData.readInt8(sourceIndex);
-          const sample16bit = sample8bit * 256;
+      for (const row of pattern) {
+        // Each row should have up to 4 steps (one per channel)
+        const steps = Array.isArray(row) ? row : [row];
+        
+        // First pass: generate all step buffers for this row
+        const rowStepBuffers = [];
+        let maxStepLength = 0;
+        
+        for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
+          const step = steps[channelIndex];
           
-          stepBuffer.writeInt16LE(sample16bit, i * 4);
-          stepBuffer.writeInt16LE(sample16bit, i * 4 + 2);
+          if (step === null || step === undefined) {
+            rowStepBuffers[channelIndex] = null;
+            continue;
+          }
+          
+          const sample = this.samples.get(step.sample);
+          if (!sample) {
+            throw new Error(`Sample '${step.sample}' not found`);
+          }
+
+          const sampleData = sample.data;
+          const baseNote = sample.baseNote;
+
+          // Convert note to semitones
+          let semitone;
+          if (typeof step.note === 'string') {
+            semitone = this.noteToSemitones(step.note, baseNote);
+          } else {
+            semitone = step.note || 0;
+          }
+
+          // Pitch shift
+          const pitchRatio = Math.pow(2, semitone / 12);
+          const newLength = Math.floor(sampleData.length / pitchRatio);
+          const stepBuffer = Buffer.alloc(newLength * 4);
+          
+          for (let i = 0; i < newLength; i++) {
+            const sourceIndex = Math.floor(i * pitchRatio);
+            if (sourceIndex < sampleData.length) {
+              const sample8bit = sampleData.readInt8(sourceIndex);
+              const sample16bit = sample8bit * 256;
+              
+              stepBuffer.writeInt16LE(sample16bit, i * 4);
+              stepBuffer.writeInt16LE(sample16bit, i * 4 + 2);
+            }
+          }
+          
+          rowStepBuffers[channelIndex] = stepBuffer;
+          maxStepLength = Math.max(maxStepLength, newLength * 4);
+        }
+        
+        // Second pass: pad all buffers to same length and add gap
+        for (let channelIndex = 0; channelIndex < numChannels; channelIndex++) {
+          const stepBuffer = rowStepBuffers[channelIndex];
+          
+          if (stepBuffer === null) {
+            // Empty channel: silence for (maxStepLength + gap)
+            const gapSamples = Math.floor(44100 * gap);
+            const totalLength = maxStepLength + (gapSamples * 4);
+            const silenceBuffer = Buffer.alloc(totalLength);
+            channelBuffers[channelIndex].push(silenceBuffer);
+          } else {
+            // Pad to maxStepLength
+            const padding = maxStepLength - stepBuffer.length;
+            const paddingBuffer = Buffer.alloc(padding);
+            
+            // Add gap
+            const gapSamples = Math.floor(44100 * gap);
+            const gapBuffer = Buffer.alloc(gapSamples * 4);
+            
+            channelBuffers[channelIndex].push(stepBuffer);
+            channelBuffers[channelIndex].push(paddingBuffer);
+            channelBuffers[channelIndex].push(gapBuffer);
+          }
         }
       }
       
-      buffers.push(stepBuffer);
-      
-      // Add gap between steps
-      const gapSamples = Math.floor(44100 * gap);
-      const gapBuffer = Buffer.alloc(gapSamples * 4);
-      buffers.push(gapBuffer);
-    }
-
-    // Concatenate all buffers
-    const finalBuffer = Buffer.concat(buffers);
+      return channelBuffers;
+    };
     
-    speaker.write(finalBuffer);
-    speaker.end();
-
-    if (finalCallback) {
-      speaker.once('close', finalCallback);
+    // Build complete buffers with repeats
+    const patternBuffers = buildPatternBuffers();
+    
+    // Mix all channels into one buffer
+    const mixChannels = (channelBuffers) => {
+      // Find the longest buffer
+      let maxLength = 0;
+      for (const channelBuffer of channelBuffers) {
+        const totalLength = channelBuffer.reduce((sum, buf) => sum + buf.length, 0);
+        maxLength = Math.max(maxLength, totalLength);
+      }
+      
+      const mixedBuffer = Buffer.alloc(maxLength);
+      
+      // Mix all channels
+      for (const channelBuffer of channelBuffers) {
+        const channelData = Buffer.concat(channelBuffer);
+        
+        for (let i = 0; i < channelData.length; i += 2) {
+          if (i >= mixedBuffer.length) break;
+          
+          const existing = mixedBuffer.readInt16LE(i);
+          const addition = channelData.readInt16LE(i);
+          
+          // Simple mixing: add and clamp to prevent overflow
+          let mixed = existing + addition;
+          mixed = Math.max(-32768, Math.min(32767, mixed));
+          
+          mixedBuffer.writeInt16LE(mixed, i);
+        }
+      }
+      
+      return mixedBuffer;
+    };
+    
+    if (repeat === -1) {
+      // Infinite loop: return playback control object
+      let stopped = false;
+      
+      const playLoop = () => {
+        if (stopped) {
+          if (finalCallback) finalCallback();
+          return;
+        }
+        
+        // Create one speaker for each loop iteration
+        const speaker = new Speaker({
+          channels: 2,
+          bitDepth: 16,
+          sampleRate: 44100
+        });
+        
+        // Mix all channels into one buffer
+        const mixedBuffer = mixChannels(patternBuffers);
+        
+        speaker.write(mixedBuffer);
+        speaker.end();
+        speaker.once('close', () => {
+          // Play next loop
+          playLoop();
+        });
+      };
+      
+      // Start playing
+      playLoop();
+      
+      // Return control object
+      return {
+        stop: () => {
+          stopped = true;
+        }
+      };
+    } else {
+      // Finite repeat: repeat N times
+      const allRepeatBuffers = Array(numChannels).fill(null).map(() => []);
+      
+      for (let r = 0; r < repeat; r++) {
+        for (let ch = 0; ch < numChannels; ch++) {
+          allRepeatBuffers[ch].push(...patternBuffers[ch]);
+        }
+      }
+      
+      // Mix all channels into one buffer
+      const finalMixedBuffer = mixChannels(allRepeatBuffers);
+      
+      // Create one speaker and play
+      const speaker = new Speaker({
+        channels: 2,
+        bitDepth: 16,
+        sampleRate: 44100
+      });
+      
+      speaker.write(finalMixedBuffer);
+      speaker.end();
+      
+      if (finalCallback) {
+        speaker.once('close', finalCallback);
+      }
     }
   }
 }

@@ -15,7 +15,7 @@
  * Usage:
  *   const loader = new ModLoader();
  *   loader.load('song.mod');
- *   loader.play({ startPattern: 0, numPatterns: 3, callback: () => {} });
+ *   loader.play({ startOrder: 0, numOrders: 3, callback: () => {} });
  * 
  * Helper methods:
  *   - analyzeEffects(start, num) - Get effect usage statistics
@@ -252,13 +252,14 @@ class ModLoader {
   }
 
   // Convert MOD patterns to Sampler format
-  convertPatterns(startPattern, numPatterns) {
+  // Public API: uses startOrder/numOrders
+  convertPatterns(startOrder, numOrders) {
     const periodTable = this.getPeriodTable();
     const samplerPattern = [];
 
-    const endPattern = Math.min(startPattern + numPatterns, this.patternTable.length);
+    const endOrder = Math.min(startOrder + numOrders, this.patternTable.length);
 
-    for (let pos = startPattern; pos < endPattern; pos++) {
+    for (let pos = startOrder; pos < endOrder; pos++) {
       const patternIndex = this.patternTable[pos];
       const modPattern = this.patterns[patternIndex];
 
@@ -307,15 +308,15 @@ class ModLoader {
     }
     
     const tempDir = options.tempDir || path.join(__dirname, 'temp_mod_playback');
-    const startPattern = options.startPattern || 0;
-    const numPatterns = options.numPatterns || this.patternTable.length;
+    const startOrder = options.startOrder || 0;
+    const numOrders = options.numOrders || this.patternTable.length;
     const callback = options.callback;
 
     // Load samples
     this.loadSamplesIntoSampler(this.sampler, tempDir);
 
     // Convert patterns
-    const samplerPattern = this.convertPatterns(startPattern, numPatterns);
+    const samplerPattern = this.convertPatterns(startOrder, numOrders);
 
     // Calculate BPM
     const bpm = this.calculateBPM();
@@ -330,11 +331,12 @@ class ModLoader {
   }
 
   // Helper: Analyze effects used in patterns
-  analyzeEffects(startPattern = 0, numPatterns = null) {
+  // Public API: uses startOrder/numOrders
+  analyzeEffects(startOrder = 0, numOrders = null) {
     const effectCounts = {};
-    const end = numPatterns !== null ? startPattern + numPatterns : this.patternTable.length;
+    const end = numOrders !== null ? startOrder + numOrders : this.patternTable.length;
 
-    for (let p = startPattern; p < end; p++) {
+    for (let p = startOrder; p < end; p++) {
       const patternIndex = this.patternTable[p];
       const pattern = this.patterns[patternIndex];
 

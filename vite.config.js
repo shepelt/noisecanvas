@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,  // Fail if port 3000 is not available
-    open: '/sampler-web.test.html',  // Auto-open test page
+    open: '/index.html',  // Auto-open index page
     fs: {
       // Allow serving files from parent directory
       allow: ['..']

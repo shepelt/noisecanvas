@@ -108,23 +108,6 @@ describe('S3M Loader', () => {
     done();
   });
 
-  test('play_s3m_file', (done) => {
-    loader.load(s3mPath);
-
-    console.log(`\n=== Playing ${loader.title} ===`);
-    console.log(`Speed: ${loader.initialSpeed}, Tempo: ${loader.initialTempo}`);
-    console.log(`BPM: ${loader.calculateBPM().toFixed(1)}`);
-
-    loader.play({
-      startOrder: 0,
-      numOrders: 3,
-      callback: () => {
-        console.log('Playback complete!');
-        done();
-      }
-    });
-  }, 120000);
-
   test('check_instrument_mapping', () => {
     loader.load(s3mPath);
 
@@ -157,28 +140,4 @@ describe('S3M Loader', () => {
       }
     });
   });
-
-  // Play distance.s3m from the beginning
-  test('play_distance_s3m', (done) => {
-    const distancePath = path.join(__dirname, 'songs', 'distance.s3m');
-    const distanceLoader = new S3mLoader();
-    console.log("loading started")
-    distanceLoader.load(distancePath);
-    console.log("loading complete")
-
-    console.log(`\n=== Playing distance.s3m (orders 0-3) ===`);
-    console.log(`Song: ${distanceLoader.title}`);
-    console.log(`Speed: ${distanceLoader.initialSpeed}, Tempo: ${distanceLoader.initialTempo}`);
-    console.log(`BPM: ${distanceLoader.calculateBPM().toFixed(1)}`);
-    console.log(`Total orders: ${distanceLoader.orders.length}`);
-    console.log("playing...")
-    distanceLoader.play({
-      startOrder: 0,
-      numOrders: 4,
-      callback: () => {
-        console.log('Playback complete!');
-        done();
-      }
-    });
-  }, 120000);
 });

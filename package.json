@@ -6,7 +6,17 @@
     "test": "jest",
     "test:filter": "jest -t",
     "test:watch": "jest --runInBand --verbose -t",
+    "test:integration": "node midi.integration.js && node mod-loader.integration.js && node s3m-loader.integration.js",
+    "test:midi": "node midi.integration.js",
+    "test:mod": "node mod-loader.integration.js",
+    "test:s3m": "node s3m-loader.integration.js",
     "mod-info": "node mod-info.js"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "\\.integration\\.js$"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -16,6 +26,7 @@
     "jest": "^29.7.0"
   },
   "dependencies": {
+    "jzz": "^1.9.6",
     "speaker": "^0.5.5",
     "wavefile": "^11.0.0"
   }

@@ -33,23 +33,6 @@ describe('MOD Loader', () => {
     console.log('Non-empty samples:', nonEmptySamples.length);
   });
 
-  test('play_mod_file', (done) => {
-    loader.load(path.join(__dirname, 'songs', 'lotus20.mod'));
-    
-    console.log(`\n=== Playing ${loader.title} ===`);
-    console.log(`Speed: ${loader.initialSpeed}, Tempo: ${loader.initialTempo}`);
-    console.log(`BPM: ${loader.calculateBPM().toFixed(1)}`);
-    
-    loader.play({
-      startPattern: 0,
-      numPatterns: 3,
-      callback: () => {
-        console.log('Playback complete!');
-        done();
-      }
-    });
-  }, 60000);
-
   test('analyze_effects', () => {
     loader.load(path.join(__dirname, 'songs', 'lotus20.mod'));
     

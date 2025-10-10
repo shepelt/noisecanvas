@@ -18,6 +18,9 @@
 - TASK-14: Tick-based timing system with Note Delay effect (SDx) support
 - TASK-15: Sample-by-sample mixing (6x speedup, O(output_samples × active_channels))
 - TASK-17: Pattern composition system (play-pattern CLI, JSON format, sample presets, study/ folder)
+- TASK-18: Integration test separation (*.integration.js files for long-running playback tests)
+- TASK-19: MOD/S3M loader API unification (standardized to startOrder/numOrders for public API)
+- TASK-20: MIDI input test infrastructure (JZZ library, basic note detection, MIDI-to-note conversion)
 
 ## In-Progress
 

@@ -10,14 +10,14 @@ describe('Sampler', () => {
   });
 
   test('load', () => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     expect(sampler.hasSample('steinway')).toBe(true);
   });
 
   test('load_default_basenote', () => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath);
 
     const sample = sampler.getSample('steinway');
@@ -25,7 +25,7 @@ describe('Sampler', () => {
   });
 
   test('load_custom_basenote', () => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     const sample = sampler.getSample('steinway');
@@ -33,7 +33,7 @@ describe('Sampler', () => {
   });
 
   test('play', (done) => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     sampler.play('steinway', () => {
@@ -42,7 +42,7 @@ describe('Sampler', () => {
   }, 5000);
 
   test('notes_semitones', (done) => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     // Do-Re-Mi-Do-Re-Mi
@@ -54,7 +54,7 @@ describe('Sampler', () => {
   }, 5000);
 
   test('notes_names', (done) => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     // Do-Re-Mi-Do-Re-Mi (C-2 to C-2 is same octave)
@@ -66,7 +66,7 @@ describe('Sampler', () => {
   }, 5000);
 
   test('notes_octaves', (done) => {
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
     sampler.loadSample('steinway', samplePath, { baseNote: 'C-2' });
 
     // C-2, C-3 (one octave up), C-4 (two octaves up)
@@ -79,9 +79,9 @@ describe('Sampler', () => {
 
   test('pattern_4channel', (done) => {
     // Load drum samples
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
-    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
-    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'HiHat1');
 
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
     sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
@@ -120,9 +120,9 @@ describe('Sampler', () => {
   }, 10000);
 
   test('pattern_simplified_interface', (done) => {
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
-    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
-    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'HiHat1');
 
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
     sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
@@ -156,7 +156,7 @@ describe('Sampler', () => {
   }, 10000);
 
   test('pattern_repeat', (done) => {
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
@@ -170,7 +170,7 @@ describe('Sampler', () => {
   }, 5000);
 
   test('pattern_infinite_loop', (done) => {
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
@@ -189,9 +189,9 @@ describe('Sampler', () => {
 
   test('pattern_4channel_timing_test', (done) => {
     // Load drum samples
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
-    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
-    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'HiHat1');
 
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
     sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
@@ -226,7 +226,7 @@ describe('Sampler', () => {
   }, 30000); // 30 second timeout for 10 repeats
 
   test('pattern_bpm_basic', (done) => {
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
@@ -245,7 +245,7 @@ describe('Sampler', () => {
   }, 5000);
 
   test('pattern_bpm_tempo_comparison', (done) => {
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
 
     const pattern = [
@@ -264,10 +264,10 @@ describe('Sampler', () => {
 
   test('technical_rhythm_16beat', (done) => {
     // Complex 16-beat drum pattern
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
-    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
-    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'HiHat1');
-    const closedHihatPath = path.join(__dirname, 'samples', 'st-01', 'CloseHiHat');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'HiHat1');
+    const closedHihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'CloseHiHat');
 
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
     sampler.loadSample('snare', snarePath, { baseNote: 'C-2' });
@@ -366,10 +366,10 @@ describe('Sampler', () => {
 
   test('melody_with_rhythm', (done) => {
     // Melody and drums playing together
-    const pianoPath = path.join(__dirname, 'samples', 'st-01', 'Steinway');
-    const kickPath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
-    const snarePath = path.join(__dirname, 'samples', 'st-01', 'Snare1');
-    const hihatPath = path.join(__dirname, 'samples', 'st-01', 'CloseHiHat');
+    const pianoPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Steinway');
+    const kickPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
+    const snarePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'Snare1');
+    const hihatPath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'CloseHiHat');
 
     sampler.loadSample('piano', pianoPath, { baseNote: 'C-2' });
     sampler.loadSample('kick', kickPath, { baseNote: 'C-2' });
@@ -437,7 +437,7 @@ describe('Sampler', () => {
 
   test('play_note_with_volume', (done) => {
     const sampler = new Sampler();
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     
     sampler.loadSample('kick', samplePath, { baseNote: 'C-2' });
     
@@ -463,7 +463,7 @@ describe('Sampler', () => {
 
   test('play_pattern_with_panning', (done) => {
     const sampler = new Sampler();
-    const samplePath = path.join(__dirname, 'samples', 'st-01', 'BassDrum1');
+    const samplePath = path.join(__dirname, '..', 'data', 'samples', 'st-01', 'BassDrum1');
     
     sampler.loadSample('kick', samplePath, { baseNote: 'C-2' });
     

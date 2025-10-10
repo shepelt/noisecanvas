@@ -2,7 +2,7 @@ const path = require('path');
 const S3mLoader = require('./s3m-loader');
 
 describe('S3M Loader', () => {
-  const s3mPath = path.join(__dirname, 'songs', 'ZAK.S3M');
+  const s3mPath = path.join(__dirname, '..', 'data', 'songs', 'ZAK.S3M');
   let loader;
 
   beforeEach(() => {

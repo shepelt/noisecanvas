@@ -15,12 +15,12 @@
  *   all       - Show everything
  * 
  * Examples:
- *   node mod-info.js songs/lotus20.mod
- *   node mod-info.js songs/lotus20.mod samples
- *   node mod-info.js songs/lotus20.mod effects
+ *   node mod-info.js data/songs/lotus20.mod
+ *   node mod-info.js data/songs/lotus20.mod samples
+ *   node mod-info.js data/songs/lotus20.mod effects
  */
 
-const ModLoader = require('../mod-loader');
+const ModLoader = require('../src/mod-loader');
 const path = require('path');
 
 const args = process.argv.slice(2);

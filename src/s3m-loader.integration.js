@@ -7,7 +7,7 @@ console.log('🎵 S3M Loader Integration Tests\n');
 // Test 1: Play ZAK.S3M
 console.log('=== Test 1: ZAK.S3M ===');
 const zakLoader = new S3mLoader();
-const zakPath = path.join(__dirname, 'songs', 'ZAK.S3M');
+const zakPath = path.join(__dirname, '..', 'data', 'songs', 'ZAK.S3M');
 zakLoader.load(zakPath);
 
 console.log(`Playing ${zakLoader.title}`);
@@ -24,7 +24,7 @@ zakLoader.play({
     // Test 2: Play distance.s3m
     console.log('=== Test 2: distance.s3m ===');
     const distanceLoader = new S3mLoader();
-    const distancePath = path.join(__dirname, 'songs', 'distance.s3m');
+    const distancePath = path.join(__dirname, '..', 'data', 'songs', 'distance.s3m');
     
     console.log('Loading distance.s3m...');
     distanceLoader.load(distancePath);

@@ -2,7 +2,7 @@ const path = require('path');
 const ModLoader = require('./mod-loader');
 
 describe('MOD Loader', () => {
-  const modPath = path.join(__dirname, 'songs', 'song.mod');
+  const modPath = path.join(__dirname, '..', 'data', 'songs', 'song.mod');
   let loader;
 
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('MOD Loader', () => {
   });
 
   test('analyze_effects', () => {
-    loader.load(path.join(__dirname, 'songs', 'lotus20.mod'));
+    loader.load(path.join(__dirname, '..', 'data', 'songs', 'lotus20.mod'));
     
     const effects = loader.analyzeEffects(0, 3);
     
@@ -50,7 +50,7 @@ describe('MOD Loader', () => {
   });
 
   test('get_looping_samples', () => {
-    loader.load(path.join(__dirname, 'songs', 'lotus20.mod'));
+    loader.load(path.join(__dirname, '..', 'data', 'songs', 'lotus20.mod'));
     
     const loopingSamples = loader.getLoopingSamples();
     

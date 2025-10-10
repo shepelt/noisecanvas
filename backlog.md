@@ -24,7 +24,7 @@
 
 ## In-Progress
 
-(none)
+- TASK-22: Web Audio-based sampler (migrate from Node.js to Web Audio API for low-latency real-time playback)
 
 ## TODO (Suggestions)
 

@@ -5,7 +5,7 @@ const ModLoader = require('./mod-loader');
 console.log('🎵 MOD Loader Integration Tests\n');
 
 const loader = new ModLoader();
-loader.load(path.join(__dirname, 'songs', 'lotus20.mod'));
+loader.load(path.join(__dirname, '..', 'data', 'songs', 'lotus20.mod'));
 
 console.log(`=== Playing ${loader.title} ===`);
 console.log(`Speed: ${loader.initialSpeed}, Tempo: ${loader.initialTempo}`);

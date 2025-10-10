@@ -28,7 +28,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const Sampler = require('../sampler');
+const Sampler = require('../src/sampler');
 const PRESETS = require('./presets');
 
 // Parse command line arguments

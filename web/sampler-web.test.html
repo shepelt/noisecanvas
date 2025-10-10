@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAudioSampler Test</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    h1 {
+      border-bottom: 2px solid #00ff00;
+      padding-bottom: 10px;
+    }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #0d0d0d;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+    }
+    button {
+      background: #003300;
+      color: #00ff00;
+      border: 2px solid #00ff00;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #00ff00;
+      color: #000;
+    }
+    button:active {
+      transform: scale(0.95);
+    }
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      background: #000;
+      border-left: 3px solid #00ff00;
+      min-height: 20px;
+    }
+    .success { color: #00ff00; }
+    .error { color: #ff0000; }
+    .info { color: #00aaff; }
+    pre {
+      background: #000;
+      padding: 10px;
+      overflow-x: auto;
+      border: 1px solid #003300;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 WebAudioSampler Test</h1>
+  
+  <div class="section">
+    <h2>1. Basic Playback Test</h2>
+    <p>Test with synthesized piano sample (C-4 base note)</p>
+    <button id="testC4">Play C-4</button>
+    <button id="testD4">Play D-4</button>
+    <button id="testE4">Play E-4</button>
+    <button id="testG4">Play G-4</button>
+  </div>
+
+  <div class="section">
+    <h2>2. Octave Range Test</h2>
+    <button id="testC3">C-3 (low)</button>
+    <button id="testC4oct">C-4 (mid)</button>
+    <button id="testC5">C-5 (high)</button>
+  </div>
+
+  <div class="section">
+    <h2>3. Volume Test</h2>
+    <button id="volQuiet">Vol 16 (quiet)</button>
+    <button id="volMed">Vol 32 (medium)</button>
+    <button id="volLoud">Vol 64 (loud)</button>
+  </div>
+
+  <div class="section">
+    <h2>4. Panning Test</h2>
+    <button id="panLeft">Pan Left (0)</button>
+    <button id="panCenter">Pan Center (128)</button>
+    <button id="panRight">Pan Right (255)</button>
+  </div>
+
+  <div class="section">
+    <h2>5. Pattern Test</h2>
+    <button id="playPattern">Play 4-beat pattern</button>
+  </div>
+
+  <div id="status" class="info">⏳ Initializing...</div>
+
+  <script src="sampler-web.js"></script>
+  <script>
+    const sampler = new WebAudioSampler();
+    const status = document.getElementById('status');
+
+    function log(message, type = 'info') {
+      status.className = type;
+      status.textContent = message;
+      console.log(message);
+    }
+
+    // Generate test piano sample
+    async function generateTestSample() {
+      try {
+        const sampleRate = sampler.ctx.sampleRate;
+        const duration = 2.0;
+        const buffer = sampler.ctx.createBuffer(1, sampleRate * duration, sampleRate);
+        const data = buffer.getChannelData(0);
+        
+        // Simple additive synthesis: fundamental + harmonics
+        for (let i = 0; i < buffer.length; i++) {
+          const t = i / sampleRate;
+          const decay = Math.exp(-t * 2);  // Exponential decay
+          const freq = 261.63;  // C4 = 261.63 Hz
+          
+          let sample = 0;
+          sample += Math.sin(2 * Math.PI * freq * t) * 1.0;      // Fundamental
+          sample += Math.sin(2 * Math.PI * freq * 2 * t) * 0.5;  // 2nd harmonic
+          sample += Math.sin(2 * Math.PI * freq * 3 * t) * 0.25; // 3rd harmonic
+          
+          data[i] = sample * decay * 0.2;  // Apply decay and normalize
+        }
+        
+        // Store manually (bypass loading)
+        sampler.samples.set('piano', {
+          buffer: buffer,
+          baseNote: 'C-4',
+          loopStart: 0,
+          loopLength: 0,
+          hasLoop: false
+        });
+        
+        log('✓ Test sample generated (C-4 piano)', 'success');
+      } catch (error) {
+        log(`✗ Failed to generate sample: ${error.message}`, 'error');
+      }
+    }
+
+    // Resume AudioContext on first user interaction (browser autoplay policy)
+    async function ensureAudioContext() {
+      if (sampler.ctx.state === 'suspended') {
+        await sampler.resume();
+        log('✓ AudioContext resumed', 'success');
+      }
+    }
+
+    // Test 1: Basic notes
+    document.getElementById('testC4').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4');
+      log('♪ Playing C-4 (base note)', 'info');
+    });
+
+    document.getElementById('testD4').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'D-4');
+      log('♪ Playing D-4 (+2 semitones)', 'info');
+    });
+
+    document.getElementById('testE4').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'E-4');
+      log('♪ Playing E-4 (+4 semitones)', 'info');
+    });
+
+    document.getElementById('testG4').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'G-4');
+      log('♪ Playing G-4 (+7 semitones)', 'info');
+    });
+
+    // Test 2: Octaves
+    document.getElementById('testC3').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-3');
+      log('♪ Playing C-3 (-12 semitones, one octave down)', 'info');
+    });
+
+    document.getElementById('testC4oct').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4');
+      log('♪ Playing C-4 (base)', 'info');
+    });
+
+    document.getElementById('testC5').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-5');
+      log('♪ Playing C-5 (+12 semitones, one octave up)', 'info');
+    });
+
+    // Test 3: Volume
+    document.getElementById('volQuiet').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { volume: 16 });
+      log('♪ Playing C-4 at volume 16 (25%)', 'info');
+    });
+
+    document.getElementById('volMed').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { volume: 32 });
+      log('♪ Playing C-4 at volume 32 (50%)', 'info');
+    });
+
+    document.getElementById('volLoud').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { volume: 64 });
+      log('♪ Playing C-4 at volume 64 (100%)', 'info');
+    });
+
+    // Test 4: Panning
+    document.getElementById('panLeft').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { pan: 0 });
+      log('♪ Playing C-4 panned LEFT', 'info');
+    });
+
+    document.getElementById('panCenter').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { pan: 128 });
+      log('♪ Playing C-4 panned CENTER', 'info');
+    });
+
+    document.getElementById('panRight').addEventListener('click', async () => {
+      await ensureAudioContext();
+      sampler.triggerNote('piano', 'C-4', { pan: 255 });
+      log('♪ Playing C-4 panned RIGHT', 'info');
+    });
+
+    // Test 5: Pattern
+    document.getElementById('playPattern').addEventListener('click', async () => {
+      await ensureAudioContext();
+      
+      // Simple 4-beat pattern
+      const pattern = [
+        [{ sample: 'piano', note: 'C-4', volume: 64 }],  // Beat 1
+        [{ sample: 'piano', note: 'E-4', volume: 48 }],  // Beat 2
+        [{ sample: 'piano', note: 'G-4', volume: 56 }],  // Beat 3
+        [{ sample: 'piano', note: 'C-5', volume: 64 }],  // Beat 4
+      ];
+      
+      sampler.playPattern(pattern, { bpm: 120, repeat: 2 });
+      log('♪ Playing C-E-G-C pattern (120 BPM, 2 repeats)', 'info');
+    });
+
+    // Initialize
+    generateTestSample();
+
+    // Display latency info
+    setTimeout(() => {
+      const latency = sampler.getLatency();
+      log(`✓ Ready! Latency: ${(latency * 1000).toFixed(1)}ms`, 'success');
+    }, 500);
+
+    // Expose sampler globally for Playwright tests
+    window.sampler = sampler;
+  </script>
+</body>
+</html>

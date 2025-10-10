@@ -7,23 +7,23 @@
 
 const PRESETS = {
   drums: {
-    kick: 'samples/st-01/BassDrum1',
-    snare: 'samples/st-01/Snare1',
-    hihat: 'samples/st-01/CloseHiHat',
-    openhat: 'samples/st-01/HiHat1',
-    smash: 'samples/st-01/Smash1'
+    kick: 'data/samples/st-01/BassDrum1',
+    snare: 'data/samples/st-01/Snare1',
+    hihat: 'data/samples/st-01/CloseHiHat',
+    openhat: 'data/samples/st-01/HiHat1',
+    smash: 'data/samples/st-01/Smash1'
   },
-  
+
   lofi: {
-    kick: 'samples/st-01/BassDrum1',
-    snare: 'samples/st-01/Snare1',
-    hihat: 'samples/st-01/CloseHiHat',
-    openhat: 'samples/st-01/HiHat1',
-    smash: 'samples/st-01/Smash1',
-    melody: 'samples/st-01/EPiano',
-    bass: 'samples/st-01/DeepBass',
-    pad: 'samples/st-01/Strings1',
-    lead: 'samples/st-01/DreamBells'
+    kick: 'data/samples/st-01/BassDrum1',
+    snare: 'data/samples/st-01/Snare1',
+    hihat: 'data/samples/st-01/CloseHiHat',
+    openhat: 'data/samples/st-01/HiHat1',
+    smash: 'data/samples/st-01/Smash1',
+    melody: 'data/samples/st-01/EPiano',
+    bass: 'data/samples/st-01/DeepBass',
+    pad: 'data/samples/st-01/Strings1',
+    lead: 'data/samples/st-01/DreamBells'
   }
 };
 

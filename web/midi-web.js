@@ -65,14 +65,22 @@ export function setupMIDIHandler(sampler, options = {}) {
       // Drum channel: map to drum samples
       if (channel === drumChannel) {
         if (drumMap[note]) {
-          sampler.triggerNote(drumMap[note], 'C-2');
+          const sampleName = drumMap[note];
+          const sample = sampler.getSample(sampleName);
+          if (sample) {
+            sampler.triggerNote(sampleName, sample.baseNote);
+          } else {
+            console.log(`Drum sample ${sampleName} not loaded`);
+          }
         } else {
           console.log(`Drum pad note ${note} not mapped`);
         }
       }
       // Melodic channel: play melodic instrument
-      else if (channel === melodicChannel) {
-        sampler.triggerNote(melodicSample, noteName);
+      else if (channel === melodicChannel && melodicSample) {
+        if (sampler.hasSample(melodicSample)) {
+          sampler.triggerNote(melodicSample, noteName);
+        }
       }
     }
     // Note Off (0x80) or Note On with velocity 0

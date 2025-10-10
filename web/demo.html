@@ -34,6 +34,10 @@
       background: #3e3e42;
       cursor: not-allowed;
     }
+    button.active {
+      background: #0a7a3d;
+      border: 2px solid #4ec9b0;
+    }
     #status {
       margin-top: 10px;
       padding: 10px;
@@ -57,8 +61,12 @@
   </div>
 
   <div class="section">
-    <h2>Step 2: Load Samples</h2>
-    <button id="loadBtn" disabled>Load ST-01 Samples</button>
+    <h2>Step 2: Select Sample Collection</h2>
+    <div style="margin-bottom: 15px;">
+      <button class="collection-btn" data-collection="st01" disabled>ST-01 (Synth)</button>
+      <button class="collection-btn" data-collection="808" disabled>808 (Drums)</button>
+      <button class="collection-btn" data-collection="openpath" disabled>OpenPath (Studio)</button>
+    </div>
     <div id="loadStatus"></div>
   </div>
 
@@ -104,6 +112,36 @@
 
     let sampler = null;
     let midiAccess = null;
+    let currentCollection = null;
+
+    // Sample collection definitions
+    const collections = {
+      st01: {
+        name: 'ST-01',
+        piano: { url: '/data/samples/st-01/Steinway.wav', baseNote: 'C-2' },
+        kick: { url: '/data/samples/st-01/BassDrum1.wav', baseNote: 'C-2' },
+        snare: { url: '/data/samples/st-01/Snare1.wav', baseNote: 'C-2' },
+        hihat: { url: '/data/samples/st-01/CloseHiHat.wav', baseNote: 'C-2' }
+      },
+      '808': {
+        name: '808',
+        piano: null, // No piano in 808 collection
+        kick: { url: '/data/samples/808/kick.wav', baseNote: 'C-2' },
+        snare: { url: '/data/samples/808/snare.wav', baseNote: 'C-2' },
+        hihat: { url: '/data/samples/808/hihat-closed.wav', baseNote: 'C-2' },
+        tom: { url: '/data/samples/808/tom.wav', baseNote: 'C-2' },
+        cowbell: { url: '/data/samples/808/cowbell.wav', baseNote: 'C-2' },
+        crash: { url: '/data/samples/808/crash.wav', baseNote: 'C-2' }
+      },
+      openpath: {
+        name: 'OpenPath',
+        piano: { url: '/data/samples/openpath/OpenPathMusic44V4/piano-studio-octave1.wav', baseNote: 'C-4' },
+        kick: { url: '/data/samples/openpath/OpenPathMusic44V1/drum-bass-hi-1.wav', baseNote: 'C-2' },
+        snare: { url: '/data/samples/openpath/OpenPathMusic44V1/drum-snare-tap.wav', baseNote: 'C-2' },
+        hihat: { url: '/data/samples/openpath/OpenPathMusic44V1/cymbal-hihat-stick.wav', baseNote: 'C-2' },
+        bell: { url: '/data/samples/openpath/OpenPathMusic44V1/bell-octave1.wav', baseNote: 'C-4' }
+      }
+    };
 
     // Initialize AudioContext
     document.getElementById('initBtn').addEventListener('click', async () => {
@@ -111,48 +149,83 @@
       await sampler.resume();
 
       document.getElementById('status').textContent = '✓ AudioContext initialized';
-      document.getElementById('loadBtn').disabled = false;
+      document.querySelectorAll('.collection-btn').forEach(btn => btn.disabled = false);
       document.getElementById('initBtn').disabled = true;
     });
 
-    // Load samples
-    document.getElementById('loadBtn').addEventListener('click', async () => {
-      const loadBtn = document.getElementById('loadBtn');
+    // Load sample collection
+    async function loadCollection(collectionId) {
       const loadStatus = document.getElementById('loadStatus');
+      const collection = collections[collectionId];
 
-      loadBtn.disabled = true;
-      loadStatus.textContent = 'Loading samples...';
+      loadStatus.textContent = `Loading ${collection.name} samples...`;
 
       try {
-        // Load piano sample for keyboard
-        await sampler.loadSample('piano', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+        // Clear previous samples
+        sampler.samples.clear();
 
-        // Load drum samples
-        await sampler.loadSample('kick', '/data/samples/st-01/BassDrum1.wav', { baseNote: 'C-2' });
-        await sampler.loadSample('snare', '/data/samples/st-01/Snare1.wav', { baseNote: 'C-2' });
-        await sampler.loadSample('hihat', '/data/samples/st-01/CloseHiHat.wav', { baseNote: 'C-2' });
+        // Load all samples in the collection
+        const loadPromises = [];
+        const loadedSamples = [];
 
-        loadStatus.textContent = '✓ Samples loaded (piano, kick, snare, hihat)';
+        for (const [sampleName, sampleInfo] of Object.entries(collection)) {
+          if (sampleName === 'name' || !sampleInfo) continue;
 
-        // Enable play buttons
-        document.querySelectorAll('.note, .drum, #patternBtn').forEach(btn => {
+          loadPromises.push(
+            sampler.loadSample(sampleName, sampleInfo.url, { baseNote: sampleInfo.baseNote })
+              .then(() => loadedSamples.push(sampleName))
+          );
+        }
+
+        await Promise.all(loadPromises);
+
+        currentCollection = collectionId;
+        loadStatus.textContent = `✓ ${collection.name} loaded: ${loadedSamples.join(', ')}`;
+
+        // Update active button state
+        document.querySelectorAll('.collection-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.collection === collectionId);
+        });
+
+        // Enable/disable piano buttons based on availability
+        const hasPiano = collection.piano !== null;
+        document.querySelectorAll('.note').forEach(btn => {
+          btn.disabled = !hasPiano;
+        });
+
+        // Enable drum buttons
+        document.querySelectorAll('.drum, #patternBtn').forEach(btn => {
           btn.disabled = false;
         });
 
         // Enable MIDI button if Web MIDI API is supported
         if (navigator.requestMIDIAccess) {
           document.getElementById('midiBtn').disabled = false;
+          if (!hasPiano) {
+            document.getElementById('midiStatus').textContent = 'MIDI will work for drums (channel 16)';
+          } else {
+            document.getElementById('midiStatus').textContent = 'Connect a MIDI device to play with your keyboard';
+          }
         } else {
           document.getElementById('midiStatus').textContent = '✗ Web MIDI API not supported in this browser';
         }
       } catch (err) {
-        loadStatus.textContent = '✗ Error loading samples: ' + err.message;
+        loadStatus.textContent = `✗ Error loading ${collection.name}: ${err.message}`;
+        console.error('Sample loading error:', err);
       }
+    }
+
+    // Collection button handlers
+    document.querySelectorAll('.collection-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        loadCollection(btn.dataset.collection);
+      });
     });
 
     // Piano keyboard
     document.querySelectorAll('.note').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (!sampler.hasSample('piano')) return;
         const note = btn.dataset.note;
         sampler.triggerNote('piano', note);
       });
@@ -162,7 +235,12 @@
     document.querySelectorAll('.drum').forEach(btn => {
       btn.addEventListener('click', () => {
         const sampleName = btn.dataset.sample;
-        sampler.triggerNote(sampleName, 'C-2');
+        if (!sampler.hasSample(sampleName)) {
+          console.warn(`Sample ${sampleName} not found in current collection`);
+          return;
+        }
+        const sample = sampler.getSample(sampleName);
+        sampler.triggerNote(sampleName, sample.baseNote);
       });
     });
 
@@ -182,8 +260,9 @@
         midiBtn.disabled = true;
 
         // Set up MIDI message handlers for all inputs
+        const hasPiano = sampler.hasSample('piano');
         const midiHandler = setupMIDIHandler(sampler, {
-          melodicSample: 'piano'
+          melodicSample: hasPiano ? 'piano' : null
         });
 
         inputs.forEach(input => {
@@ -198,16 +277,21 @@
 
     // Pattern playback
     document.getElementById('patternBtn').addEventListener('click', () => {
+      // Get base notes from loaded samples
+      const kickNote = sampler.getSample('kick')?.baseNote || 'C-2';
+      const snareNote = sampler.getSample('snare')?.baseNote || 'C-2';
+      const hihatNote = sampler.getSample('hihat')?.baseNote || 'C-2';
+
       // Simple 8-beat pattern
       const pattern = [
-        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'snare', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'snare', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
-        [{ sample: 'hihat', note: 'C-2' }]
+        [{ sample: 'kick', note: kickNote }, { sample: 'hihat', note: hihatNote }],
+        [{ sample: 'hihat', note: hihatNote }],
+        [{ sample: 'snare', note: snareNote }, { sample: 'hihat', note: hihatNote }],
+        [{ sample: 'hihat', note: hihatNote }],
+        [{ sample: 'kick', note: kickNote }, { sample: 'hihat', note: hihatNote }],
+        [{ sample: 'kick', note: kickNote }, { sample: 'hihat', note: hihatNote }],
+        [{ sample: 'snare', note: snareNote }, { sample: 'hihat', note: hihatNote }],
+        [{ sample: 'hihat', note: hihatNote }]
       ];
 
       sampler.playPattern(pattern, { bpm: 120, repeat: 2 });

@@ -164,6 +164,14 @@ See `bin/presets.js` for all available sample presets.
 - openhat: HiHat1
 - smash: Smash1
 
+## Samples
+
+NoiseCanvas includes three sample collections. See `SAMPLES.md` for details on base notes and available instruments.
+
+- **ST-01** - 100+ synth samples (piano, strings, drums)
+- **808** - 9 classic drum machine sounds
+- **OpenPath** - Professional multi-sampled instruments (4 volumes)
+
 ## Project Structure
 
 ```
@@ -174,6 +182,7 @@ See `bin/presets.js` for all available sample presets.
   loader.test.js     # MOD loader tests
   sampler.test.js    # Sampler tests
   backlog.md         # Progress tracking
+  SAMPLES.md         # Sample collection reference
   /bin
     play-pattern.js  # Pattern composition player
     presets.js       # Sample presets
@@ -181,8 +190,10 @@ See `bin/presets.js` for all available sample presets.
     /lesson1         # Basic drum patterns
     /lesson2         # Lo-fi hip-hop rhythms
   /songs             # MOD files
-  /samples           # Sample files
+  /data/samples      # Sample files
     /st-01           # Ultimate Soundtracker samples
+    /808             # Classic drum machine
+    /openpath        # Professional studio samples
 ```
 
 ## Development Philosophy

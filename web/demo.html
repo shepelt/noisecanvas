@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NoiseCanvas - Web Audio Demo</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    h1 { color: #4ec9b0; }
+    .section {
+      background: #252526;
+      padding: 20px;
+      margin: 20px 0;
+      border: 1px solid #3e3e42;
+    }
+    button {
+      background: #0e639c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button:hover { background: #1177bb; }
+    button:disabled {
+      background: #3e3e42;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1e1e1e;
+      border-left: 3px solid #4ec9b0;
+    }
+    .keyboard {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 NoiseCanvas Web Audio Demo</h1>
+
+  <div class="section">
+    <h2>Step 1: Initialize</h2>
+    <button id="initBtn">Initialize AudioContext</button>
+    <div id="status">Click "Initialize" to start</div>
+  </div>
+
+  <div class="section">
+    <h2>Step 2: Load Samples</h2>
+    <button id="loadBtn" disabled>Load ST-01 Samples</button>
+    <div id="loadStatus"></div>
+  </div>
+
+  <div class="section">
+    <h2>Step 3: Play</h2>
+    <h3>Piano Keyboard</h3>
+    <div class="keyboard">
+      <button class="note" data-note="C-3" disabled>C-3</button>
+      <button class="note" data-note="D-3" disabled>D-3</button>
+      <button class="note" data-note="E-3" disabled>E-3</button>
+      <button class="note" data-note="F-3" disabled>F-3</button>
+      <button class="note" data-note="G-3" disabled>G-3</button>
+      <button class="note" data-note="A-3" disabled>A-3</button>
+      <button class="note" data-note="B-3" disabled>B-3</button>
+      <button class="note" data-note="C-4" disabled>C-4</button>
+      <button class="note" data-note="D-4" disabled>D-4</button>
+      <button class="note" data-note="E-4" disabled>E-4</button>
+      <button class="note" data-note="F-4" disabled>F-4</button>
+      <button class="note" data-note="G-4" disabled>G-4</button>
+      <button class="note" data-note="A-4" disabled>A-4</button>
+      <button class="note" data-note="B-4" disabled>B-4</button>
+      <button class="note" data-note="C-5" disabled>C-5</button>
+    </div>
+
+    <h3>Drums</h3>
+    <button class="drum" data-sample="kick" disabled>Kick</button>
+    <button class="drum" data-sample="snare" disabled>Snare</button>
+    <button class="drum" data-sample="hihat" disabled>Hi-Hat</button>
+
+    <h3>Pattern</h3>
+    <button id="patternBtn" disabled>Play Demo Pattern</button>
+  </div>
+
+  <script src="sampler-web.js"></script>
+  <script>
+    let sampler = null;
+
+    // Initialize AudioContext
+    document.getElementById('initBtn').addEventListener('click', async () => {
+      sampler = new WebAudioSampler();
+      await sampler.resume();
+
+      document.getElementById('status').textContent = '✓ AudioContext initialized';
+      document.getElementById('loadBtn').disabled = false;
+      document.getElementById('initBtn').disabled = true;
+    });
+
+    // Load samples
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      const loadBtn = document.getElementById('loadBtn');
+      const loadStatus = document.getElementById('loadStatus');
+
+      loadBtn.disabled = true;
+      loadStatus.textContent = 'Loading samples...';
+
+      try {
+        // Load piano sample for keyboard
+        await sampler.loadSample('piano', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+
+        // Load drum samples
+        await sampler.loadSample('kick', '/data/samples/st-01/BassDrum1.wav', { baseNote: 'C-2' });
+        await sampler.loadSample('snare', '/data/samples/st-01/Snare1.wav', { baseNote: 'C-2' });
+        await sampler.loadSample('hihat', '/data/samples/st-01/CloseHiHat.wav', { baseNote: 'C-2' });
+
+        loadStatus.textContent = '✓ Samples loaded (piano, kick, snare, hihat)';
+
+        // Enable play buttons
+        document.querySelectorAll('.note, .drum, #patternBtn').forEach(btn => {
+          btn.disabled = false;
+        });
+      } catch (err) {
+        loadStatus.textContent = '✗ Error loading samples: ' + err.message;
+      }
+    });
+
+    // Piano keyboard
+    document.querySelectorAll('.note').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const note = btn.dataset.note;
+        sampler.triggerNote('piano', note);
+      });
+    });
+
+    // Drums
+    document.querySelectorAll('.drum').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sampleName = btn.dataset.sample;
+        sampler.triggerNote(sampleName, 'C-2');
+      });
+    });
+
+    // Pattern playback
+    document.getElementById('patternBtn').addEventListener('click', () => {
+      // Simple 8-beat pattern
+      const pattern = [
+        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'snare', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'snare', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }]
+      ];
+
+      sampler.playPattern(pattern, { bpm: 120, repeat: 2 });
+    });
+  </script>
+</body>
+</html>

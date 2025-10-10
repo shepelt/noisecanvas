@@ -23,11 +23,8 @@
 - TASK-20: MIDI input test infrastructure (JZZ library, basic note detection, MIDI-to-note conversion)
 - TASK-21: Project restructuring (separated data/, src/, and web/ directories)
 - TASK-22: Web Audio-based sampler (WebAudioSampler class, ST-01 WAV conversion, Vite middleware for /data serving)
+- TASK-23: Web MIDI integration (midi-web.js module, channel-based routing, General MIDI drum map support)
 
 ## In-Progress
 
 ## TODO (Suggestions)
-
-- TASK-16: Additional S3M effects (volume slides, portamento, vibrato, arpeggio, etc.)
-- MOD/S3M effect support (portamento, vibrato, arpeggio, etc.)
-- Real-time streaming engine (vs current offline rendering)

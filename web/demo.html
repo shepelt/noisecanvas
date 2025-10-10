@@ -63,7 +63,13 @@
   </div>
 
   <div class="section">
-    <h2>Step 3: Play</h2>
+    <h2>Step 3: Connect MIDI (Optional)</h2>
+    <button id="midiBtn" disabled>Connect MIDI Device</button>
+    <div id="midiStatus">Connect a MIDI device to play with your keyboard</div>
+  </div>
+
+  <div class="section">
+    <h2>Step 4: Play</h2>
     <h3>Piano Keyboard</h3>
     <div class="keyboard">
       <button class="note" data-note="C-3" disabled>C-3</button>
@@ -93,8 +99,11 @@
   </div>
 
   <script src="sampler-web.js"></script>
-  <script>
+  <script type="module">
+    import { connectMIDI, setupMIDIHandler } from './midi-web.js';
+
     let sampler = null;
+    let midiAccess = null;
 
     // Initialize AudioContext
     document.getElementById('initBtn').addEventListener('click', async () => {
@@ -129,6 +138,13 @@
         document.querySelectorAll('.note, .drum, #patternBtn').forEach(btn => {
           btn.disabled = false;
         });
+
+        // Enable MIDI button if Web MIDI API is supported
+        if (navigator.requestMIDIAccess) {
+          document.getElementById('midiBtn').disabled = false;
+        } else {
+          document.getElementById('midiStatus').textContent = '✗ Web MIDI API not supported in this browser';
+        }
       } catch (err) {
         loadStatus.textContent = '✗ Error loading samples: ' + err.message;
       }
@@ -148,6 +164,36 @@
         const sampleName = btn.dataset.sample;
         sampler.triggerNote(sampleName, 'C-2');
       });
+    });
+
+    // MIDI connection
+    document.getElementById('midiBtn').addEventListener('click', async () => {
+      const midiBtn = document.getElementById('midiBtn');
+      const midiStatus = document.getElementById('midiStatus');
+
+      try {
+        midiAccess = await connectMIDI();
+
+        const inputs = Array.from(midiAccess.inputs.values());
+
+        // Display connected devices
+        const deviceNames = inputs.map(input => input.name).join(', ');
+        midiStatus.textContent = `✓ Connected to: ${deviceNames}`;
+        midiBtn.disabled = true;
+
+        // Set up MIDI message handlers for all inputs
+        const midiHandler = setupMIDIHandler(sampler, {
+          melodicSample: 'piano'
+        });
+
+        inputs.forEach(input => {
+          input.onmidimessage = midiHandler;
+        });
+
+      } catch (err) {
+        midiStatus.textContent = '✗ Error accessing MIDI: ' + err.message;
+        console.error('MIDI Error:', err);
+      }
     });
 
     // Pattern playback

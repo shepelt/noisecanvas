@@ -21,10 +21,10 @@
 - TASK-18: Integration test separation (*.integration.js files for long-running playback tests)
 - TASK-19: MOD/S3M loader API unification (standardized to startOrder/numOrders for public API)
 - TASK-20: MIDI input test infrastructure (JZZ library, basic note detection, MIDI-to-note conversion)
+- TASK-21: Project restructuring (separated data/, src/, and web/ directories)
+- TASK-22: Web Audio-based sampler (WebAudioSampler class, ST-01 WAV conversion, Vite middleware for /data serving)
 
 ## In-Progress
-
-- TASK-22: Web Audio-based sampler (migrate from Node.js to Web Audio API for low-latency real-time playback)
 
 ## TODO (Suggestions)
 

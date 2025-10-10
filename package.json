@@ -25,7 +25,9 @@
       "/node_modules/",
       "\\.integration\\.js$"
     ],
-    "testMatch": ["**/src/**/*.test.js"]
+    "testMatch": [
+      "**/src/**/*.test.js"
+    ]
   },
   "keywords": [],
   "author": "",

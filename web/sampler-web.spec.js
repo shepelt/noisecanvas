@@ -232,17 +232,156 @@ test.describe('WebAudioSampler', () => {
   test('multiple_notes_simultaneously', async ({ page }) => {
     const result = await page.evaluate(async () => {
       await window.sampler.resume();
-      
+
       // Trigger multiple notes at once (chord)
       window.sampler.triggerNote('piano', 'C-4');
       window.sampler.triggerNote('piano', 'E-4');
       window.sampler.triggerNote('piano', 'G-4');
-      
+
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       return true;
     });
-    
+
+    expect(result).toBe(true);
+  });
+});
+
+test.describe('WebAudioSampler - Real ST-01 Samples', () => {
+
+  test.beforeEach(async ({ page }) => {
+    // Navigate to test page to load WebAudioSampler
+    await page.goto('/sampler-web.test.html');
+
+    // Wait for sampler-web.js to load
+    await page.waitForFunction(() => typeof WebAudioSampler !== 'undefined');
+  });
+
+  test('load_real_sample_steinway', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+      await sampler.loadSample('steinway', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+
+      return sampler.hasSample('steinway');
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test('play_real_sample_steinway', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+      await sampler.loadSample('steinway', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+      await sampler.resume();
+
+      sampler.triggerNote('steinway', 'C-2');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      return true;
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test('play_real_drums_pattern', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+
+      // Load drum samples
+      await sampler.loadSample('kick', '/data/samples/st-01/BassDrum1.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('snare', '/data/samples/st-01/Snare1.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('hihat', '/data/samples/st-01/CloseHiHat.wav', { baseNote: 'C-2' });
+
+      await sampler.resume();
+
+      // Simple 4-beat drum pattern
+      const pattern = [
+        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'snare', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }]
+      ];
+
+      sampler.playPattern(pattern, { bpm: 120, repeat: 2 });
+
+      // Wait for pattern to complete (4 beats × 2 repeats at 120 BPM = 4 seconds)
+      await new Promise(resolve => setTimeout(resolve, 4500));
+
+      return true;
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test('play_melody_with_real_samples', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+
+      // Load piano and drums
+      await sampler.loadSample('piano', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('kick', '/data/samples/st-01/BassDrum1.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('hihat', '/data/samples/st-01/CloseHiHat.wav', { baseNote: 'C-2' });
+
+      await sampler.resume();
+
+      // Melody + rhythm pattern (C-D-E-C melody with drums)
+      const pattern = [
+        [{ sample: 'piano', note: 'C-3' }, { sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'piano', note: 'D-3' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'piano', note: 'E-3' }, { sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'piano', note: 'C-3' }, { sample: 'hihat', note: 'C-2' }],
+        [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }]
+      ];
+
+      sampler.playPattern(pattern, { bpm: 120, repeat: 1 });
+
+      // Wait for pattern to complete (8 beats at 120 BPM = 4 seconds)
+      await new Promise(resolve => setTimeout(resolve, 4500));
+
+      return true;
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test('play_different_octaves_real_sample', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+      await sampler.loadSample('piano', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+      await sampler.resume();
+
+      // Play C across different octaves
+      const notes = ['C-2', 'C-3', 'C-4'];
+      for (const note of notes) {
+        sampler.triggerNote('piano', note);
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+
+      return true;
+    });
+
+    expect(result).toBe(true);
+  });
+
+  test('load_multiple_real_samples', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const sampler = new WebAudioSampler();
+
+      // Load various instrument samples
+      await sampler.loadSample('steinway', '/data/samples/st-01/Steinway.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('bass', '/data/samples/st-01/DeepBass.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('strings', '/data/samples/st-01/Strings1.wav', { baseNote: 'C-2' });
+      await sampler.loadSample('bells', '/data/samples/st-01/DreamBells.wav', { baseNote: 'C-2' });
+
+      return sampler.hasSample('steinway') &&
+             sampler.hasSample('bass') &&
+             sampler.hasSample('strings') &&
+             sampler.hasSample('bells');
+    });
+
     expect(result).toBe(true);
   });
 });

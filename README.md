@@ -33,11 +33,12 @@ NoiseCanvas is built with a bottom-up approach where musical concepts emerge nat
 # Install dependencies
 npm install
 
-# Start API server (port 3001)
+# Start hybrid server (port 3000 - includes both API and Vite with HMR)
 npm run dev
 
-# Start Vite dev server (port 3000)
-npm run dev:vite
+# Or run servers separately:
+npm run dev:api   # API server only (port 3001)
+npm run dev:vite  # Vite only (port 3000)
 
 # Run all tests
 npm test

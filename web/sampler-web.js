@@ -267,10 +267,10 @@ class WebAudioSampler {
   }
 }
 
-// Export for browser global scope (window.WebAudioSampler)
-// The class is already available globally since it's defined at the top level
+// Export for ES modules
+export default WebAudioSampler;
 
-// Optional: Export for Node.js environments (testing, etc.)
+// Also export for Node.js environments (testing, etc.)
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = WebAudioSampler;
 }

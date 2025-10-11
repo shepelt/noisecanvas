@@ -53,7 +53,7 @@ export class NoiseCanvasClient {
    */
   async loadSamples() {
     try {
-      const response = await fetch('http://localhost:3001/api/samples');
+      const response = await fetch('/api/samples');
       const data = await response.json();
 
       if (data.success) {
@@ -61,8 +61,8 @@ export class NoiseCanvasClient {
         for (const sample of data.samples) {
           console.log(`[NoiseCanvas Client] Loading sample: ${sample.name}`);
 
-          // Use full URL to API server (with CORS enabled)
-          const sampleUrl = `http://localhost:3001${sample.path}`;
+          // Use relative URL (works with hybrid server on same origin)
+          const sampleUrl = sample.path;
 
           await this.sampler.loadSample(sample.name, sampleUrl, {
             baseNote: sample.baseNote,
@@ -118,7 +118,7 @@ export class NoiseCanvasClient {
    */
   async requestPlayNotes(notes, options = {}) {
     try {
-      const response = await fetch('http://localhost:3001/api/play-notes', {
+      const response = await fetch('/api/play-notes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ export class NoiseCanvasClient {
     this.pollInterval = setInterval(async () => {
       try {
         // Poll for new play commands
-        const response = await fetch('http://localhost:3001/api/pending-plays');
+        const response = await fetch('/api/pending-plays');
         const data = await response.json();
 
         if (data.success && data.plays && data.plays.length > 0) {

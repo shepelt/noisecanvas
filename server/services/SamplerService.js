@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class SamplerService {
-  constructor() {
+  constructor(options = {}) {
     // Available samples registry
     this.samples = new Map();
 

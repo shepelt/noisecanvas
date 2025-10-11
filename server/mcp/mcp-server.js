@@ -12,15 +12,19 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
+// API endpoint configuration
+// Use localhost:3001 if running dev:api separately, or localhost:3000 for hybrid server
+const API_BASE_URL = process.env.NOISECANVAS_API_URL || 'http://localhost:3000';
+
 /**
  * Create and configure MCP server
  *
- * @param {object} services - Service instances
- * @param {PatternService} services.pattern - Pattern service
- * @param {SamplerService} services.sampler - Sampler service
+ * The MCP server acts as a pure gateway/relay to the Express API.
+ * It does not handle business logic or services directly.
+ *
  * @returns {Server} Configured MCP server
  */
-export function createMCPServer(services) {
+export function createMCPServer() {
   const server = new Server(
     {
       name: 'noisecanvas',
@@ -34,15 +38,17 @@ export function createMCPServer(services) {
   );
 
   // Register tool handlers
-  setupToolHandlers(server, services);
+  setupToolHandlers(server);
 
   return server;
 }
 
 /**
  * Set up tool handlers
+ *
+ * All handlers forward requests to the Express API
  */
-function setupToolHandlers(server, services) {
+function setupToolHandlers(server) {
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
@@ -202,16 +208,16 @@ function setupToolHandlers(server, services) {
     try {
       switch (name) {
         case 'play_notes':
-          return await handlePlayNotes(services, args);
+          return await handlePlayNotes(args);
 
         case 'play_pattern':
-          return await handlePlayPattern(services, args);
+          return await handlePlayPattern(args);
 
         case 'list_samples':
-          return await handleListSamples(services);
+          return await handleListSamples();
 
         case 'get_sample_info':
-          return await handleGetSampleInfo(services, args);
+          return await handleGetSampleInfo(args);
 
         default:
           throw new Error(`Unknown tool: ${name}`);
@@ -233,17 +239,14 @@ function setupToolHandlers(server, services) {
 /**
  * Handle play_notes tool call
  *
- * Calls the HTTP API instead of using services directly
- * This ensures the pattern goes to the shared queue that the browser polls
+ * Forwards the request to the Express API
  */
-async function handlePlayNotes(services, args) {
-  // Note: Can't use console.log here - stdio is used for MCP communication
-
+async function handlePlayNotes(args) {
   const { notes, bpm, instrument, octave, volume } = args;
 
-  // Call HTTP API instead of services directly
+  // Call HTTP API
   try {
-    const response = await fetch('http://localhost:3001/api/play-notes', {
+    const response = await fetch(`${API_BASE_URL}/api/play-notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notes, bpm, instrument, octave, volume })
@@ -275,14 +278,13 @@ async function handlePlayNotes(services, args) {
 /**
  * Handle play_pattern tool call
  *
- * Plays a tracker-style pattern with multi-channel support
- * Calls the HTTP API to ensure the pattern goes to the shared queue
+ * Forwards the request to the Express API
  */
-async function handlePlayPattern(services, args) {
+async function handlePlayPattern(args) {
   const { rows, bpm, speed, repeat } = args;
 
   try {
-    const response = await fetch('http://localhost:3001/api/play-pattern', {
+    const response = await fetch(`${API_BASE_URL}/api/play-pattern`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rows, bpm, speed, repeat })
@@ -313,11 +315,12 @@ async function handlePlayPattern(services, args) {
 
 /**
  * Handle list_samples tool call
- * Calls the HTTP API to get the current list of samples
+ *
+ * Forwards the request to the Express API
  */
-async function handleListSamples(services) {
+async function handleListSamples() {
   try {
-    const response = await fetch('http://localhost:3001/api/samples');
+    const response = await fetch(`${API_BASE_URL}/api/samples`);
     const result = await response.json();
 
     return {
@@ -343,13 +346,14 @@ async function handleListSamples(services) {
 
 /**
  * Handle get_sample_info tool call
- * Calls the HTTP API to get sample info
+ *
+ * Forwards the request to the Express API
  */
-async function handleGetSampleInfo(services, args) {
+async function handleGetSampleInfo(args) {
   const { sampleId } = args;
 
   try {
-    const response = await fetch(`http://localhost:3001/api/samples/${sampleId}`);
+    const response = await fetch(`${API_BASE_URL}/api/samples/${sampleId}`);
     const result = await response.json();
 
     return {
@@ -376,10 +380,10 @@ async function handleGetSampleInfo(services, args) {
 /**
  * Start MCP server with stdio transport
  *
- * @param {object} services - Service instances
+ * The MCP server acts as a pure gateway/relay to the Express API.
  */
-export async function startMCPServer(services) {
-  const server = createMCPServer(services);
+export async function startMCPServer() {
+  const server = createMCPServer();
   const transport = new StdioServerTransport();
 
   await server.connect(transport);

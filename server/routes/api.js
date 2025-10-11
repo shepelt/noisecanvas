@@ -109,7 +109,7 @@ export function createAPIRouter(services) {
       const playData = {
         playId,
         pattern: rows,  // rows is already in the correct multi-channel format
-        bpm: tempo,
+        tempo: tempo,  // tempo in rows/min for Web Audio sampler
         speed: speed || 6,
         repeat: repeat || 1,
         startTime: Date.now(),

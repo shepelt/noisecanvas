@@ -24,9 +24,9 @@
 - TASK-21: Project restructuring (separated data/, src/, and web/ directories)
 - TASK-22: Web Audio-based sampler (WebAudioSampler class, ST-01 WAV conversion, Vite middleware for /data serving)
 - TASK-23: Web MIDI integration (midi-web.js module, channel-based routing, General MIDI drum map support)
+- TASK-24: NoiseCanvas Server with MCP integration (Express + Vite hybrid, Electron-ready architecture)
+- TASK-25: Web-based architecture migration (removed legacy node-speaker/MOD/S3M implementations, unified on Web Audio API, Jest + Playwright test suite with 42 total tests)
 
 ## In-Progress
-
-- TASK-24: NoiseCanvas Server with MCP integration (Express + Vite hybrid, Electron-ready architecture)
 
 ## TODO (Suggestions)

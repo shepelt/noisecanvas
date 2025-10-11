@@ -1,9 +1,9 @@
 # AI Development Rules for NoiseCanvas
 
 ## Project Overview
-NoiseCanvas is a sample-based music tracker engine for learning music theory through code. Built with a bottom-up approach where musical concepts emerge naturally from implementation.
+NoiseCanvas is a web-based sample playback engine for learning music theory through code. Built with a bottom-up approach where musical concepts emerge naturally from implementation.
 
-**Important**: Read `README.md` for project structure, usage examples, and available tools (play-pattern.js, mod-info.js, etc.)
+**Important**: Read `README.md` for project structure, API endpoints, and current architecture (Express + Web Audio)
 
 ## Development Philosophy
 
@@ -23,18 +23,27 @@ Music theory study → Implementation of concepts
 ```
 
 ## Technology Stack
-- **Runtime**: Node.js
-- **Language**: JavaScript (ES6+)
-- **Audio**: node-speaker (raw PCM output)
+- **Backend**: Node.js + Express (REST API)
+- **Frontend**: Web Audio API (browser-based audio)
+- **Language**: JavaScript (ES6+ modules)
+- **Testing**: Jest (unit tests) + Playwright (web tests)
+- **Build**: Vite (dev server + bundler)
 
 ## Project Structure
 
-Keep it flat until complexity demands organization:
+Organized into clear layers:
 
 ```
 /noisecanvas
-  /samples          # Audio samples
-  /experiments      # Quick experiments and tests
+  /server           # Express API server
+    /services       # Core business logic (transport-independent)
+    /routes         # REST API endpoints
+  /web              # Web Audio sampler + frontend
+    sampler-web.js  # Web Audio API implementation
+    midi-web.js     # Web MIDI integration
+    index.html      # Demo page
+  /data/samples     # Audio sample files (WAV)
+  /bin              # CLI tools (play-pattern.js)
   backlog.md        # Task management and progress tracking
 ```
 
@@ -54,12 +63,16 @@ Keep it flat until complexity demands organization:
   - Keep names short but descriptive: function name + brief context
   - Good: `pattern_beat`, `notes_octaves`, `load_custom_basenote`
   - Bad: `should play a pattern with kick and snare beat`
-  - Run specific test: `npm run test:filter pattern_beat`
+  - Run specific test: `npm run test:unit:filter pattern_beat`
+- **Test layers**
+  - Unit tests (Jest): Pure logic in services (PatternService)
+  - Web tests (Playwright): Browser-based Web Audio functionality
+  - Integration tests: Full API → Web Audio flow
 - Example cycle:
-  1. Write test: "440Hz sine wave for 1 second"
+  1. Write test: "Play C-D-E pattern at 120 BPM"
   2. Run test (fails)
   3. Implement minimal code to pass
-  4. Listen to result
+  4. Listen to result in browser
   5. Refactor if needed
 
 ### Iteration Cycle

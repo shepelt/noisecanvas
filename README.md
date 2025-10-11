@@ -1,200 +1,179 @@
 # NoiseCanvas
 
-A sample-based music tracker engine for learning music theory through code.
+A web-based sample playback engine for learning music theory through code.
 
 ## Overview
 
 NoiseCanvas is built with a bottom-up approach where musical concepts emerge naturally from implementation. The goal is to learn music theory by building a music engine, not to build an educational product.
 
+## Architecture
+
+**Web-based audio engine** built on Web Audio API:
+- **Express API server** - Pattern playback service with REST endpoints
+- **Web Audio sampler** - Low-latency browser-based audio (5-15ms vs 3000ms in Node.js)
+- **Pattern service** - Core business logic (transport-independent)
+- **Web MIDI support** - Play samples via MIDI keyboard
+- **MCP integration** - Control via Model Context Protocol
+
 ## Features
 
-- **4-channel pattern system** - Amiga-style tracker with software mixing
-- **BPM-based timing** - Precise rhythm control
-- **MOD file support** - Load and play Amiga MOD files (15 and 31 sample formats)
-- **Volume and panning** - Per-note volume control and stereo positioning
+- **Sample-based playback** - Play notes with pitch shifting
+- **Tempo control** - Precise BPM-based timing (rows per minute)
+- **Web Audio API** - Hardware-accelerated audio in the browser
+- **MIDI input** - Route MIDI keyboard to samples
+- **Pattern system** - Compose and play note sequences
+- **Volume and panning** - Per-note control
 - **Sample looping** - Sustain sounds with loop points
-- **Linear interpolation** - Smooth pitch shifting and resampling
 
 ## Quick Start
 
-```javascript
-const ModLoader = require('./loader');
+### Development
 
-// Load and play a MOD file
-const loader = new ModLoader();
-loader.load('songs/lotus20.mod');
-loader.play({
-  startPattern: 0,
-  numPatterns: 3,
-  callback: () => console.log('Done!')
+```bash
+# Install dependencies
+npm install
+
+# Start API server (port 3001)
+npm run dev
+
+# Start Vite dev server (port 3000)
+npm run dev:vite
+
+# Run all tests
+npm test
+```
+
+### API Usage
+
+**Play notes via REST API:**
+```bash
+curl -X POST http://localhost:3001/api/play-notes \
+  -H "Content-Type: application/json" \
+  -d '{"notes": ["C", "D", "E"], "bpm": 120}'
+```
+
+**Web client polls for patterns:**
+```javascript
+// Client polls /api/pending-plays
+const response = await fetch('http://localhost:3001/api/pending-plays');
+const plays = await response.json();
+
+// Play each pattern with Web Audio
+plays.forEach(play => {
+  sampler.playPattern(play.pattern, {
+    tempo: play.tempo,  // rows per minute
+    speed: play.speed,
+    repeat: play.repeat
+  });
 });
 ```
 
-## MOD File Analysis Tool
+### Web Audio Sampler
 
-CLI tool for analyzing Amiga MOD files - designed to help humans and LLMs understand MOD file structure.
+```javascript
+import { WebAudioSampler } from './web/sampler-web.js';
 
-### Usage
+// Create sampler
+const sampler = new WebAudioSampler();
 
-```bash
-node mod-info.js <modfile> [command]
-```
+// Load sample
+await sampler.loadSample('piano', '/data/samples/st-01/Steinway.wav', {
+  baseNote: 'C-4'
+});
 
-### Commands
+// Play note
+sampler.triggerNote('piano', 'D-4', { volume: 64 });
 
-- `info` - Show basic MOD information (default)
-- `samples` - List all samples with details
-- `loops` - Show only looping samples
-- `effects` - Analyze effect usage
-- `patterns` - Show pattern information
-- `all` - Show everything
-
-### Examples
-
-**Basic info:**
-```bash
-node mod-info.js songs/lotus20.mod
-```
-
-**Sample list:**
-```bash
-node mod-info.js songs/lotus20.mod samples
-```
-
-**Effect analysis:**
-```bash
-node mod-info.js songs/lotus20.mod effects
-```
-
-**Everything:**
-```bash
-node mod-info.js songs/lotus20.mod all
-```
-
-### Output Example
-
-```
-=== MOD File Information ===
-File: lotus20.mod
-Title: LOTUS 2
-Patterns: 22 positions, 15 unique patterns
-Speed: 6 ticks/row
-Tempo: 125 BPM
-Calculated BPM: 500.0
-Samples: 13 non-empty
-
-=== Effect Usage ===
-C20:  880x  (Set Volume)
-400:  164x  (Vibrato)
-F06:  107x  (Set Speed/Tempo)
-...
-```
-
-### For LLMs
-
-This tool helps language models analyze MOD files by providing:
-
-1. **File structure** - Quick overview of patterns, samples, tempo
-2. **Effect analysis** - Which MOD effects are used and how often
-3. **Sample inspection** - Names, sizes, volumes, and loop points
-4. **Playback details** - Speed/tempo settings and pattern sequences
-
-Example for complete analysis:
-```bash
-node mod-info.js songs/amegas.mod all
+// Play pattern
+const pattern = [
+  { sample: 'piano', note: 'C-4', volume: 64 },
+  { sample: 'piano', note: 'D-4', volume: 64 },
+  { sample: 'piano', note: 'E-4', volume: 64 }
+];
+sampler.playPattern(pattern, { tempo: 480 }); // 120 BPM × 4
 ```
 
 ## Testing
 
 ```bash
-npm test                    # Run all tests
-npm run test:filter <name>  # Run specific test
+# Run all tests (unit + web)
+npm test
+
+# Run unit tests only (Jest)
+npm run test:unit
+
+# Run web tests only (Playwright)
+npm run test:web
+
+# Run integration tests (standalone)
+node test-api-integration.js
 ```
 
-## Pattern Composition System
-
-Create and play pattern-based compositions using JSON format.
-
-### Usage
-
-```bash
-node bin/play-pattern.js <pattern-file.json> [--repeat N]
-```
-
-### Pattern JSON Format
-
-```json
-{
-  "preset": "drums",
-  "bpm": 120,
-  "pattern": [
-    { "kick": "C-4", "hihat": "C-4" },
-    { "hihat": "C-4" },
-    { "snare": "C-4", "hihat": "C-4" },
-    { "hihat": "C-4" }
-  ]
-}
-```
-
-### Examples
-
-```bash
-# Play once
-node bin/play-pattern.js study/lesson1/01-kick-snare.json
-
-# Repeat 4 times
-node bin/play-pattern.js study/lesson1/02-basic-8beat.json --repeat 4
-```
-
-### Study Folder Structure
-
-Pattern compositions organized by learning progression:
-
-- `study/lesson1/` - Basic drum patterns (kick, snare, hihat)
-- `study/lesson2/` - Lo-fi hip-hop rhythms and variations
-
-### Available Presets
-
-See `bin/presets.js` for all available sample presets.
-
-**drums** - Ultimate Soundtracker drum kit
-- kick: BassDrum1
-- snare: Snare1
-- hihat: CloseHiHat
-- openhat: HiHat1
-- smash: Smash1
+**Test coverage:**
+- 17 Jest unit tests (PatternService logic)
+- 19 Playwright tests (Web Audio functionality)
+- 6 integration tests (API endpoints)
+- **Total: 42 tests**
 
 ## Samples
 
-NoiseCanvas includes three sample collections. See `SAMPLES.md` for details on base notes and available instruments.
+NoiseCanvas includes sample collections:
 
-- **ST-01** - 100+ synth samples (piano, strings, drums)
+- **ST-01** - 100+ Ultimate Soundtracker samples (piano, strings, drums)
 - **808** - 9 classic drum machine sounds
-- **OpenPath** - Professional multi-sampled instruments (4 volumes)
+- **OpenPath** - Professional multi-sampled instruments
+
+See `SAMPLES.md` for details on base notes and available instruments.
 
 ## Project Structure
 
 ```
 /noisecanvas
-  loader.js          # MOD file loader (documented)
-  sampler.js         # Sample playback engine
-  mod-info.js        # CLI analysis tool
-  loader.test.js     # MOD loader tests
-  sampler.test.js    # Sampler tests
-  backlog.md         # Progress tracking
-  SAMPLES.md         # Sample collection reference
+  /server
+    server-simple.js        # Express API server
+    /services
+      PatternService.js     # Core pattern logic
+      PatternService.test.js
+    /routes
+      api.js                # REST API endpoints
+  /web
+    sampler-web.js          # Web Audio sampler
+    sampler-web.spec.js     # Playwright tests
+    noisecanvas-client.js   # Polling client
+    midi-web.js             # Web MIDI integration
+    index.html              # Demo page
   /bin
-    play-pattern.js  # Pattern composition player
-    presets.js       # Sample presets
-  /study
-    /lesson1         # Basic drum patterns
-    /lesson2         # Lo-fi hip-hop rhythms
-  /songs             # MOD files
-  /data/samples      # Sample files
-    /st-01           # Ultimate Soundtracker samples
-    /808             # Classic drum machine
-    /openpath        # Professional studio samples
+    play-pattern.js         # Pattern player CLI (to be updated)
+    presets.js              # Sample presets
+  /data/samples
+    /st-01                  # Ultimate Soundtracker
+    /808                    # Drum machine
+    /openpath               # Studio samples
+  backlog.md                # Progress tracking
+  SAMPLES.md                # Sample reference
+  AI_RULES.md               # Development guidelines
 ```
+
+## API Endpoints
+
+**POST /api/play-notes**
+```json
+{
+  "notes": ["C", "D", "E"],
+  "bpm": 120,
+  "instrument": "ST-01",
+  "octave": 4
+}
+```
+
+**GET /api/pending-plays**
+Returns array of pending patterns for clients to play.
+
+**GET /api/samples**
+List available samples.
+
+**GET /health**
+Server health check.
 
 ## Development Philosophy
 
@@ -204,6 +183,15 @@ NoiseCanvas includes three sample collections. See `SAMPLES.md` for details on b
 - **Listen first** - Experience the sound before learning the theory
 
 See `AI_RULES.md` for detailed development guidelines.
+
+## Tempo System
+
+**Musical BPM vs Internal Tempo:**
+- **Musical BPM** = quarter notes per minute (user-facing)
+- **Internal tempo** = rows per minute (tracker timing)
+- **Conversion**: `tempo = musical BPM × 4` (16th note resolution)
+
+Example: 120 BPM = 480 rows/min
 
 ## License
 

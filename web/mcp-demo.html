@@ -89,7 +89,7 @@
     <p>This page demonstrates the MCP (Model Context Protocol) integration with NoiseCanvas.</p>
 
     <div class="note">
-      <strong>⚠️ Important:</strong> Click "Initialize Audio" first (required by browser autoplay policy).
+      <strong>💡 Tip:</strong> Audio will auto-initialize on first button click (browser autoplay policy requires user interaction).
     </div>
 
     <div id="status" class="status">
@@ -98,13 +98,13 @@
 
     <h2>Quick Actions</h2>
 
-    <button id="initBtn" onclick="initAudio()">Initialize Audio</button>
-    <button id="testBtn" onclick="testPlayCDE()" disabled>Test: Play C-D-E</button>
-    <button id="scaleBtn" onclick="testPlayScale()" disabled>Test: C Major Scale</button>
-    <button id="chordBtn" onclick="testPlayChord()" disabled>Test: C Major Chord</button>
+    <button id="initBtn" onclick="initAudio()">Initialize Audio (Manual)</button>
+    <button id="testBtn" onclick="testPlayCDE()">Test: Play C-D-E</button>
+    <button id="scaleBtn" onclick="testPlayScale()">Test: C Major Scale</button>
+    <button id="chordBtn" onclick="testPlayChord()">Test: C Major Chord</button>
 
     <h2>API Test</h2>
-    <button id="apiBtn" onclick="testAPI()" disabled>Test API Call</button>
+    <button id="apiBtn" onclick="testAPI()">Test API Call</button>
 
     <h2>MCP Configuration</h2>
     <p>To enable Claude to control NoiseCanvas, add this to your MCP configuration:</p>
@@ -179,12 +179,17 @@
 
     window.testPlayCDE = async function() {
       try {
+        // Auto-initialize if needed
+        if (!window.noiseCanvasClient || !window.noiseCanvasClient.isInitialized) {
+          await window.initAudio();
+        }
+
         log('Playing C-D-E...');
         setStatus('Playing C-D-E...', 'info');
 
         const result = await window.noiseCanvasClient.playNotes(['C-4', 'D-4', 'E-4'], {
-          bpm: 120,
-          instrument: 'ST-01'
+          bpm: 60,
+          instrument: 'OP-PIANO-STUDIO'
         });
 
         log('Played C-D-E successfully!', 'success');
@@ -197,13 +202,18 @@
 
     window.testPlayScale = async function() {
       try {
+        // Auto-initialize if needed
+        if (!window.noiseCanvasClient || !window.noiseCanvasClient.isInitialized) {
+          await window.initAudio();
+        }
+
         log('Playing C major scale...');
         setStatus('Playing scale...', 'info');
 
         const notes = ['C-4', 'D-4', 'E-4', 'F-4', 'G-4', 'A-4', 'B-4', 'C-5'];
         const result = await window.noiseCanvasClient.playNotes(notes, {
-          bpm: 180,
-          instrument: 'ST-01'
+          bpm: 60,
+          instrument: 'OP-PIANO-STUDIO'
         });
 
         log('Played scale successfully!', 'success');
@@ -216,15 +226,24 @@
 
     window.testPlayChord = async function() {
       try {
+        // Auto-initialize if needed
+        if (!window.noiseCanvasClient || !window.noiseCanvasClient.isInitialized) {
+          await window.initAudio();
+        }
+
         log('Playing C major chord...');
         setStatus('Playing chord...', 'info');
 
-        // For chords, we'd need to play simultaneously, but for now play quickly
-        const notes = ['C-4', 'E-4', 'G-4'];
-        const result = await window.noiseCanvasClient.playNotes(notes, {
-          bpm: 300,  // Fast BPM for near-simultaneous playback
-          instrument: 'ST-01'
-        });
+        // Play notes simultaneously using the sampler directly
+        // Create a pattern with all notes in a single row (multi-channel)
+        const pattern = [
+          { sample: 'OP-PIANO-STUDIO', note: 'C-4', volume: 64 },
+          { sample: 'OP-PIANO-STUDIO', note: 'E-4', volume: 64 },
+          { sample: 'OP-PIANO-STUDIO', note: 'G-4', volume: 64 }
+        ];
+
+        // Use sampler directly to play all notes at once (60 BPM = 240 tempo)
+        window.noiseCanvasClient.sampler.playPattern([pattern], { tempo: 240 });
 
         log('Played chord successfully!', 'success');
         setStatus('Status: Ready', 'success');
@@ -236,12 +255,17 @@
 
     window.testAPI = async function() {
       try {
+        // Auto-initialize if needed
+        if (!window.noiseCanvasClient || !window.noiseCanvasClient.isInitialized) {
+          await window.initAudio();
+        }
+
         log('Testing API call...');
         setStatus('Calling API...', 'info');
 
         const result = await window.noiseCanvasClient.requestPlayNotes(['C-4', 'D-4', 'E-4'], {
-          bpm: 120,
-          instrument: 'ST-01'
+          bpm: 60,
+          instrument: 'OP-PIANO-STUDIO'
         });
 
         log(`API call successful: ${JSON.stringify(result)}`, 'success');

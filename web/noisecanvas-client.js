@@ -98,8 +98,11 @@ export class NoiseCanvasClient {
       volume,
     }));
 
+    // Convert musical BPM to tempo (rows/min)
+    const tempo = bpm * 4;  // 16th note resolution
+
     // Play using sampler
-    this.sampler.playPattern(pattern, { bpm });
+    this.sampler.playPattern(pattern, { tempo });
 
     return {
       success: true,
@@ -132,8 +135,11 @@ export class NoiseCanvasClient {
       const result = await response.json();
 
       if (result.success) {
+        // Convert musical BPM to tempo (rows/min)
+        const tempo = result.bpm * 4;  // 16th note resolution
+
         // Play the pattern locally
-        this.sampler.playPattern(result.pattern, { bpm: result.bpm });
+        this.sampler.playPattern(result.pattern, { tempo });
       }
 
       return result;

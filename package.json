@@ -4,21 +4,21 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "node server/server-simple.js",
+    "dev:full": "node server/server.js",
+    "dev:vite": "vite",
     "build": "vite build",
+    "start": "NODE_ENV=production node server/server.js",
     "preview": "vite preview",
-    "test": "jest",
+    "mcp": "node server/mcp-entry.js",
+    "test": "npm run test:unit && npm run test:web",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit:filter": "node --experimental-vm-modules node_modules/jest/bin/jest.js -t",
+    "test:unit:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:web": "playwright test",
     "test:web:headed": "playwright test --headed",
     "test:web:ui": "playwright test --ui",
-    "test:web:debug": "playwright test --debug",
-    "test:filter": "jest -t",
-    "test:watch": "jest --runInBand --verbose -t",
-    "test:integration": "node src/midi.integration.js && node src/mod-loader.integration.js && node src/s3m-loader.integration.js",
-    "test:midi": "node src/midi.integration.js",
-    "test:mod": "node src/mod-loader.integration.js",
-    "test:s3m": "node src/s3m-loader.integration.js",
-    "mod-info": "node bin/mod-info.js"
+    "test:web:debug": "playwright test --debug"
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -26,8 +26,9 @@
       "\\.integration\\.js$"
     ],
     "testMatch": [
-      "**/src/**/*.test.js"
-    ]
+      "**/server/**/*.test.js"
+    ],
+    "transform": {}
   },
   "keywords": [],
   "author": "",
@@ -39,6 +40,8 @@
     "vite": "^7.1.9"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "express": "^5.1.0",
     "jzz": "^1.9.6",
     "speaker": "^0.5.5",
     "wavefile": "^11.0.0"

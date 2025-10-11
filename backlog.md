@@ -27,4 +27,6 @@
 
 ## In-Progress
 
+- TASK-24: NoiseCanvas Server with MCP integration (Express + Vite hybrid, Electron-ready architecture)
+
 ## TODO (Suggestions)

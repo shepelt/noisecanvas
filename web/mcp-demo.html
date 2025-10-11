@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>NoiseCanvas MCP Demo</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #0066cc;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #0052a3;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .status {
+      margin: 20px 0;
+      padding: 15px;
+      background: #e7f3ff;
+      border-left: 4px solid #0066cc;
+      border-radius: 4px;
+    }
+    .error {
+      background: #ffe7e7;
+      border-left-color: #cc0000;
+    }
+    .success {
+      background: #e7ffe7;
+      border-left-color: #00cc00;
+    }
+    .log {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      margin-top: 20px;
+      border-radius: 4px;
+    }
+    .code {
+      background: #282c34;
+      color: #abb2bf;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      margin: 10px 0;
+      overflow-x: auto;
+    }
+    .note {
+      background: #fff4e6;
+      padding: 15px;
+      border-left: 4px solid #ff9800;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 NoiseCanvas MCP Demo</h1>
+
+    <p>This page demonstrates the MCP (Model Context Protocol) integration with NoiseCanvas.</p>
+
+    <div class="note">
+      <strong>⚠️ Important:</strong> Click "Initialize Audio" first (required by browser autoplay policy).
+    </div>
+
+    <div id="status" class="status">
+      Status: Not initialized
+    </div>
+
+    <h2>Quick Actions</h2>
+
+    <button id="initBtn" onclick="initAudio()">Initialize Audio</button>
+    <button id="testBtn" onclick="testPlayCDE()" disabled>Test: Play C-D-E</button>
+    <button id="scaleBtn" onclick="testPlayScale()" disabled>Test: C Major Scale</button>
+    <button id="chordBtn" onclick="testPlayChord()" disabled>Test: C Major Chord</button>
+
+    <h2>API Test</h2>
+    <button id="apiBtn" onclick="testAPI()" disabled>Test API Call</button>
+
+    <h2>MCP Configuration</h2>
+    <p>To enable Claude to control NoiseCanvas, add this to your MCP configuration:</p>
+
+    <div class="code">{
+  "mcpServers": {
+    "noisecanvas": {
+      "command": "node",
+      "args": ["C:\\Users\\shepe\\noisecanvas\\server\\mcp-entry.js"]
+    }
+  }
+}</div>
+
+    <p>Then run the server:</p>
+    <div class="code">npm run dev</div>
+
+    <p>And start the MCP server in a separate terminal:</p>
+    <div class="code">npm run mcp</div>
+
+    <h2>Log</h2>
+    <div id="log" class="log">Ready to start...</div>
+  </div>
+
+  <script type="module">
+    import NoiseCanvasClient from './noisecanvas-client.js';
+
+    // Global state
+    window.noiseCanvasClient = null;
+
+    window.log = function(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+      logDiv.textContent += `\n[${timestamp}] ${prefix} ${message}`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    };
+
+    window.setStatus = function(message, type = 'info') {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = 'status';
+      if (type === 'error') statusDiv.classList.add('error');
+      if (type === 'success') statusDiv.classList.add('success');
+    };
+
+    window.initAudio = async function() {
+      try {
+        log('Initializing NoiseCanvas Client...');
+        setStatus('Initializing...', 'info');
+
+        window.noiseCanvasClient = new NoiseCanvasClient();
+        await window.noiseCanvasClient.init();
+
+        log('NoiseCanvas Client initialized successfully!', 'success');
+        setStatus('Status: Initialized and ready', 'success');
+
+        // Start polling for MCP-triggered plays
+        window.noiseCanvasClient.startPolling();
+        log('Started polling for MCP commands...', 'success');
+
+        // Enable buttons
+        document.getElementById('testBtn').disabled = false;
+        document.getElementById('scaleBtn').disabled = false;
+        document.getElementById('chordBtn').disabled = false;
+        document.getElementById('apiBtn').disabled = false;
+        document.getElementById('initBtn').disabled = true;
+      } catch (error) {
+        log(`Initialization failed: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testPlayCDE = async function() {
+      try {
+        log('Playing C-D-E...');
+        setStatus('Playing C-D-E...', 'info');
+
+        const result = await window.noiseCanvasClient.playNotes(['C-4', 'D-4', 'E-4'], {
+          bpm: 120,
+          instrument: 'ST-01'
+        });
+
+        log('Played C-D-E successfully!', 'success');
+        setStatus('Status: Ready', 'success');
+      } catch (error) {
+        log(`Play failed: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testPlayScale = async function() {
+      try {
+        log('Playing C major scale...');
+        setStatus('Playing scale...', 'info');
+
+        const notes = ['C-4', 'D-4', 'E-4', 'F-4', 'G-4', 'A-4', 'B-4', 'C-5'];
+        const result = await window.noiseCanvasClient.playNotes(notes, {
+          bpm: 180,
+          instrument: 'ST-01'
+        });
+
+        log('Played scale successfully!', 'success');
+        setStatus('Status: Ready', 'success');
+      } catch (error) {
+        log(`Play failed: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testPlayChord = async function() {
+      try {
+        log('Playing C major chord...');
+        setStatus('Playing chord...', 'info');
+
+        // For chords, we'd need to play simultaneously, but for now play quickly
+        const notes = ['C-4', 'E-4', 'G-4'];
+        const result = await window.noiseCanvasClient.playNotes(notes, {
+          bpm: 300,  // Fast BPM for near-simultaneous playback
+          instrument: 'ST-01'
+        });
+
+        log('Played chord successfully!', 'success');
+        setStatus('Status: Ready', 'success');
+      } catch (error) {
+        log(`Play failed: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    window.testAPI = async function() {
+      try {
+        log('Testing API call...');
+        setStatus('Calling API...', 'info');
+
+        const result = await window.noiseCanvasClient.requestPlayNotes(['C-4', 'D-4', 'E-4'], {
+          bpm: 120,
+          instrument: 'ST-01'
+        });
+
+        log(`API call successful: ${JSON.stringify(result)}`, 'success');
+        setStatus('Status: Ready', 'success');
+      } catch (error) {
+        log(`API call failed: ${error.message}`, 'error');
+        setStatus(`Error: ${error.message}`, 'error');
+      }
+    };
+
+    log('Page loaded. Click "Initialize Audio" to begin.');
+  </script>
+</body>
+</html>

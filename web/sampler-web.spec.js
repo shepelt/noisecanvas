@@ -144,8 +144,8 @@ test.describe('WebAudioSampler', () => {
         [{ sample: 'piano', note: 'C-5', volume: 64 }],
       ];
       
-      window.sampler.playPattern(pattern, { bpm: 120, repeat: 1 });
-      
+      window.sampler.playPattern(pattern, { tempo: 480, repeat: 1 }); // 120 BPM × 4 = 480 rows/min
+
       // Wait for pattern to complete (4 beats at 120 BPM = 2 seconds)
       await new Promise(resolve => setTimeout(resolve, 2500));
       
@@ -164,8 +164,8 @@ test.describe('WebAudioSampler', () => {
         [{ sample: 'piano', note: 'E-4' }],
       ];
       
-      window.sampler.playPattern(pattern, { bpm: 240, repeat: 3 });
-      
+      window.sampler.playPattern(pattern, { tempo: 960, repeat: 3 }); // 240 BPM × 4 = 960 rows/min
+
       // Wait for 3 repeats (2 beats × 3 repeats at 240 BPM = 1.5 seconds)
       await new Promise(resolve => setTimeout(resolve, 2000));
       
@@ -183,12 +183,12 @@ test.describe('WebAudioSampler', () => {
         [{ sample: 'piano', note: 'C-4' }],
       ];
       
-      // Play at BPM 60 (slow)
-      window.sampler.playPattern(pattern, { bpm: 60, repeat: 2 });
+      // Play at tempo 240 (60 BPM × 4, slow)
+      window.sampler.playPattern(pattern, { tempo: 240, repeat: 2 });
       await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      // Play at BPM 240 (fast)
-      window.sampler.playPattern(pattern, { bpm: 240, repeat: 4 });
+
+      // Play at tempo 960 (240 BPM × 4, fast)
+      window.sampler.playPattern(pattern, { tempo: 960, repeat: 4 });
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       return true;
@@ -302,7 +302,7 @@ test.describe('WebAudioSampler - Real ST-01 Samples', () => {
         [{ sample: 'hihat', note: 'C-2' }]
       ];
 
-      sampler.playPattern(pattern, { bpm: 120, repeat: 2 });
+      sampler.playPattern(pattern, { tempo: 480, repeat: 2 }); // 120 BPM × 4 = 480 rows/min
 
       // Wait for pattern to complete (4 beats × 2 repeats at 120 BPM = 4 seconds)
       await new Promise(resolve => setTimeout(resolve, 4500));
@@ -336,7 +336,7 @@ test.describe('WebAudioSampler - Real ST-01 Samples', () => {
         [{ sample: 'kick', note: 'C-2' }, { sample: 'hihat', note: 'C-2' }]
       ];
 
-      sampler.playPattern(pattern, { bpm: 120, repeat: 1 });
+      sampler.playPattern(pattern, { tempo: 480, repeat: 1 }); // 120 BPM × 4 = 480 rows/min
 
       // Wait for pattern to complete (8 beats at 120 BPM = 4 seconds)
       await new Promise(resolve => setTimeout(resolve, 4500));

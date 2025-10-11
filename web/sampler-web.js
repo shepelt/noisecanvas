@@ -149,22 +149,22 @@ class WebAudioSampler {
   }
 
   /**
-   * Play a pattern with BPM-based timing
+   * Play a pattern with tempo-based timing
    * Uses Web Audio's precise scheduling (sample-accurate timing)
-   * 
+   *
    * @param {Array} pattern - Pattern data (array of rows)
    * @param {object} options - Playback options
-   * @param {number} options.bpm - Beats per minute (default 120)
+   * @param {number} options.tempo - Tempo in rows per minute (default 480 = 120 BPM × 4)
    * @param {number} options.speed - Ticks per row (default 6)
    * @param {number} options.repeat - Number of repeats (default 1)
    */
   playPattern(pattern, options = {}) {
-    const bpm = options.bpm || 120;
+    const tempo = options.tempo || 480; // Default: 120 BPM × 4 = 480 rows/min
     const speed = options.speed || 6;
     const repeat = options.repeat || 1;
-    
-    // Calculate timing (same as Node.js sampler)
-    const rowDuration = 60 / bpm;  // Seconds per row
+
+    // Calculate timing
+    const rowDuration = 60 / tempo;  // Seconds per row
     const tickDuration = rowDuration / speed;  // Seconds per tick (for effects)
     
     let startTime = this.ctx.currentTime + 0.1; // Small offset for scheduling
@@ -177,7 +177,11 @@ class WebAudioSampler {
         const steps = Array.isArray(row) ? row : [row];
         steps.forEach((step, channelIndex) => {
           if (step && step.sample) {
-            this.scheduleNote(step, rowTime);
+            // Check for Note Delay effect (delay in ticks)
+            const delayTicks = (step.delay !== undefined) ? step.delay : 0;
+            const delayTime = delayTicks * tickDuration;
+
+            this.scheduleNote(step, rowTime + delayTime);
           }
         });
       });
@@ -263,7 +267,10 @@ class WebAudioSampler {
   }
 }
 
-// Export for both browser and module environments
+// Export for browser global scope (window.WebAudioSampler)
+// The class is already available globally since it's defined at the top level
+
+// Optional: Export for Node.js environments (testing, etc.)
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = WebAudioSampler;
 }

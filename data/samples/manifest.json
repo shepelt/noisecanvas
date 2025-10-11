@@ -1,0 +1,176 @@
+{
+  "st-01": {
+    "ST-01": {
+      "displayName": "ST-01 Steinway Piano",
+      "path": "/data/samples/st-01/Steinway.wav",
+      "baseNote": "C-2",
+      "type": "piano"
+    }
+  },
+  "808": {
+    "808-KICK": {
+      "displayName": "808 Kick Drum",
+      "path": "/data/samples/808/kick.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-SNARE": {
+      "displayName": "808 Snare",
+      "path": "/data/samples/808/snare.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-HIHAT-CLOSED": {
+      "displayName": "808 Closed Hi-Hat",
+      "path": "/data/samples/808/hihat-closed.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-HIHAT-OPEN": {
+      "displayName": "808 Open Hi-Hat",
+      "path": "/data/samples/808/hihat-open.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-CLAV": {
+      "displayName": "808 Claves",
+      "path": "/data/samples/808/clav.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-COWBELL": {
+      "displayName": "808 Cowbell",
+      "path": "/data/samples/808/cowbell.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-CRASH": {
+      "displayName": "808 Crash Cymbal",
+      "path": "/data/samples/808/crash.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-TOM": {
+      "displayName": "808 Tom",
+      "path": "/data/samples/808/tom.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    },
+    "808-CONGA": {
+      "displayName": "808 Conga",
+      "path": "/data/samples/808/conga.wav",
+      "baseNote": "C-2",
+      "type": "drum"
+    }
+  },
+  "openpath": {
+    "OP-KICK": {
+      "displayName": "OpenPath Bass Drum",
+      "path": "/data/samples/openpath/OpenPathMusic44V1/drum-bass-hi-1.wav",
+      "baseNote": "C-2",
+      "type": "percussion"
+    },
+    "OP-SNARE": {
+      "displayName": "OpenPath Snare Drum",
+      "path": "/data/samples/openpath/OpenPathMusic44V1/drum-snare-tap.wav",
+      "baseNote": "C-2",
+      "type": "percussion"
+    },
+    "OP-HIHAT-CLOSED": {
+      "displayName": "OpenPath Hi-Hat Closed",
+      "path": "/data/samples/openpath/OpenPathMusic44V1/cymbal-hihat-stick.wav",
+      "baseNote": "C-2",
+      "type": "percussion"
+    },
+    "OP-HIHAT-OPEN": {
+      "displayName": "OpenPath Hi-Hat Open",
+      "path": "/data/samples/openpath/OpenPathMusic44V1/cymbal-hihat-open-stick-1.wav",
+      "baseNote": "C-2",
+      "type": "percussion"
+    },
+    "OP-BELL": {
+      "displayName": "OpenPath Bell",
+      "path": "/data/samples/openpath/OpenPathMusic44V1/bell-octave1.wav",
+      "baseNote": "C-4",
+      "type": "percussion"
+    },
+    "OP-FLUTE": {
+      "displayName": "OpenPath Flute",
+      "path": "/data/samples/openpath/OpenPathMusic44V2/flute-C-octave1.wav",
+      "baseNote": "C-4",
+      "type": "wind"
+    },
+    "OP-SAX": {
+      "displayName": "OpenPath Saxophone",
+      "path": "/data/samples/openpath/OpenPathMusic44V2/saxophone-alto-C-octave1.wav",
+      "baseNote": "C-4",
+      "type": "wind"
+    },
+    "OP-CLARINET": {
+      "displayName": "OpenPath Clarinet",
+      "path": "/data/samples/openpath/OpenPathMusic44V2/clarinet-C-octave1.wav",
+      "baseNote": "C-4",
+      "type": "wind"
+    },
+    "OP-PIANO-STUDIO": {
+      "displayName": "OpenPath Studio Piano",
+      "path": "/data/samples/openpath/OpenPathMusic44V4/piano-studio-octave1.wav",
+      "baseNote": "C-4",
+      "type": "keyboard"
+    },
+    "OP-HARPSICHORD": {
+      "displayName": "OpenPath Harpsichord",
+      "path": "/data/samples/openpath/OpenPathMusic44V4/harpsichord-octave1.wav",
+      "baseNote": "C-4",
+      "type": "keyboard"
+    },
+    "OP-ORGAN": {
+      "displayName": "OpenPath Organ",
+      "path": "/data/samples/openpath/OpenPathMusic44V4/organ-tonewheel-octave1.wav",
+      "baseNote": "C-4",
+      "type": "keyboard"
+    },
+    "OP-BASS-ACOUSTIC": {
+      "displayName": "OpenPath Acoustic Bass",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/bass-ac-C-octave1.wav",
+      "baseNote": "C-3",
+      "type": "string"
+    },
+    "OP-BASS-ELECTRIC": {
+      "displayName": "OpenPath Electric Bass",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/bass-elec2-E-octave1.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    },
+    "OP-GUITAR-ACOUSTIC": {
+      "displayName": "OpenPath Acoustic Guitar",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/guitar-ac-E-octave1.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    },
+    "OP-GUITAR-ELECTRIC-CLEAN": {
+      "displayName": "OpenPath Electric Guitar (Clean)",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/guitar-elec-solid-E-octave1-long.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    },
+    "OP-GUITAR-ELECTRIC": {
+      "displayName": "OpenPath Electric Guitar",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/guitar-elec-hollow-E-lo.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    },
+    "OP-GUITAR-ELECTRIC-DIST": {
+      "displayName": "OpenPath Electric Guitar (Distortion)",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/guitar-elec-solid-dist-E-octave1-long.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    },
+    "OP-GUITAR-CLASSICAL": {
+      "displayName": "OpenPath Classical Guitar",
+      "path": "/data/samples/openpath/OpenPathMusic44V3/guitar-classical-E-octave1.wav",
+      "baseNote": "E-3",
+      "type": "string"
+    }
+  }
+}
